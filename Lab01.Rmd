@@ -1,0 +1,232 @@
+---
+title: 'Geog 111A Lab 1: R Basics'
+author: "Written by Adam W. Davis and Elizabeth C. McBride"
+date: "Fall 2018"
+output:
+  html_document: default
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, eval = FALSE)
+```
+
+This lab will walk you through some basic functions of R, including data types, data import, and packages. Please be sure to read everything! Also be sure to run every line of code in this assignment on your own to follow along!
+
+***
+<span style="color:red">For submission: 
+One script with the code asked for in the questions marked in red. Please make sure you have your **first name initial and full last name** in your document name. </span>
+
+Note: We will build an example script together in lab to show you how to format your submission. This will be posted to Gauchospace afterwards.
+
+Note 2: Please only include the answers to the questions in you final script. No need for the lab example code in the submission file. However, I recommend saving a separa
+
+***
+
+## Creating your first script
+
+1. Open RStudio
+2. Click File > New File > R Script
+3. Save your script just like you would save any other document: 
+    a. Push File > Save
+    b. Navigate to the folder location where you would like to save your file
+    c. Name the file, and **make sure it has a `.R` file extension**
+    d. Click "Save"
+
+
+Now you can start writing code! Type the following into your new script:
+```{r}
+1 + 1
+```
+
+To run the code, click somewhere in that line of code so you see your cursor flashing in it. Then press `Ctrl+Enter` on a PC, or `Command+Enter` on a Mac. This will run the line your cursor is currently on.
+
+
+
+### More than one line of code at a time:
+
+Type the following into your script, including the line break:
+```{r}
+3 + 3
+4 + 4
+```
+
+Now, highlight both lines and use the same run command as previously. This runs both lines of code one after the other.
+
+### Comments
+
+Anything after the symbol `#` is a comment. Use comments to explain what you're doing.
+
+**Tip**: Well-commented code will help you remember what each part of your code does. Comments are also very important for anyone else reading your code so they can follow along with what you are doing.
+
+Comment example:
+```{r}
+# Comments can go above or below code to divide it up for organization
+4 - 2
+
+100/25 # They can also go next to a line of code
+
+
+#####
+# Five or more hashmarks in a row with no following text will create a section divide. 
+# You can minimize sections to hide them from view. Very handy for long scripts! 
+
+
+```
+
+
+## Basic Mathematical Operations
+
+### The following are the symbols for basic mathematic calculations:
+
+* Addition: `+`
+
+* Subtraction: `-`
+
+* Multiplication: `*`
+
+* Division: `/` 
+
+* Exponentiation: `^` or `**`
+
+
+Basic calculations
+
+```{r}
+# Basic Calculations
+
+1 + 5
+
+3 - 4
+
+3 * 3
+
+7 / 8
+
+6^2
+
+6^(1+1)
+```
+
+
+```{r}
+# Getting a little fancy
+
+(1+5) * (3+3) # Parentheses function like they would in algebra
+
+(5^(1+1)) 
+
+(5^(1+1)) + 2
+```
+
+
+##### <span style="color:red">Q1. In your script, write out at least four calculations besides the examples I gave. Run each and paste the answers into a comment to the right of each equation. </span>
+
+
+## Variable Assignment
+
+One of the fundamental concepts of any programming language is variable assignment. This is assigning names to  almost name name to an object you create. We also call these variables "objects". 
+
+These are statements that store a value under a name that you specify.
+
+
+Run the following code in your script:
+```{r}
+x <- 1
+y <- 2
+```
+
+**NOTE:** Now look at your `Environment` pane. Do you see your two newly-created variables `x` and `y`?
+
+
+Run the following two lines, one at a time, and check the `Console` pane for your results
+```{r}
+x
+y
+```
+We call R's response here **"returning a value"**.
+
+### Run the following code one line at a time:
+
+```{r}
+x + y
+x - y
+x * y
+x/y
+```
+
+As you can see, variables that have been given names can be used in calculations
+
+##### <span style="color:red">Q2. In your script, answer the following questions. Include your code and the answers in a comment to the right of the equation. (A) What is y divided by x? (B) What is y-cubed? </span>
+
+## The following was not discussed in the lab presentation, and we will cover these topics in more detail in next week's lab.
+
+## Data Types
+R stores data internally in a range of formats, including numbers, character strings, and boolean (`TRUE` / `FALSE`) values.
+
+### Run the following:
+```{r}
+a <- 5
+is.numeric(a)
+```
+The `is.numeric()` function is testing whether or not the value stored in `a` is numeric.
+
+### Run the following:
+```{r}
+b = "Hello!"
+is.numeric(b)
+is.character(b)
+```
+Character strings need to be enclosed in single- or double-quotes. 
+
+## Vectors -- multiple values stored in one place
+A vector is "a sequence of data elements of the same basic type" (http://www.r-tutor.com/r-introduction/vector). You can have a vector of numbers, character strings, or boolean (`TRUE` / `FALSE`) values. 
+
+### Run the following:
+```{r}
+range15 = 11:15
+range15
+listOfModes = c('Auto','Bike','Foot','Bus','Rail')
+listOfModes
+```
+The `c()` function "combines its arguments to form a vector" (from `c()` function help page).
+
+### Specific elements of a vector can be accessed using an index (`[ ]`):
+```{r}
+listOfModes[3]
+range15[c(1,4,5)]
+```
+
+### Or by indicating which elements to include / exclude:
+```{r}
+range15 < 14
+```
+This code asks whether or not each value in `range15` is below 14, and returns `TRUE` or `FALSE` for each value.
+
+
+
+```{r}
+range15[range15 < 14]
+```
+This code asks R to return all `range15` values below 14.
+
+##### <span style="color:red">Q3. Show me the **code** to return the values of `range15` that are greater than 12? </span>
+
+
+## Getting help in R:
+
+It's easy to access the help system. For individual functions, it goes like this:
+```{r}
+help(sum)
+```
+
+or just:
+```{r}
+?median
+```
+
+The help page will describe all the function parameters, its output, and provide a code sample or two.
+
+##### <span style="color:red">Q4. Look up `Logic` in the help system (it is case-sensitive), then click "Logical Operators". What does an exclamation point indicate? Answer in a comment. </span>
+
