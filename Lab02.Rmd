@@ -93,7 +93,7 @@ This is a data type that can have only two values: `TRUE` or `FALSE`. These are 
 !TRUE    # 
 ```
 
-##### <span style="color:red">Q1. Answer the following in comments in your script. Go to http://www.statmethods.net/management/operators.html and look at the table of Logical Operators. (A) Explain what `10 >= 9` is testing in the form of a question (format it like I did for `10 == 10` in the code above, with the logical test to the left of the comment). (B) Do the same for `10 < 3`. (C) Do the same for `10 != 10`. </span>
+##### <span style="color:red">Q1. Answer the following in comments in your script. Go to http://www.statmethods.net/management/operators.html and look at the table of Logical Operators. (A) Explain what `10 >= 9` is testing in the form of a question (format it like I did for `10 == 10` in the code above, with the logical test to the left of the comment). (B) Do the same for `10 < 3`. (C) Do the same for `10 != 10`. (2) </span>
 
 
 
@@ -177,7 +177,7 @@ View(df1)
 NOTE: Clicking on the `data.frame` in the `Environment` box (upper right corner of Rstudio) has the same effect.
 
 
-##### <span style="color:red">Q2. Create another new variable within* `df1` named `r15_sq` that consists of the squared values of `r15`. Insert your code. </span>
+##### <span style="color:red">Q2. Create another new variable within* `df1` named `r15_sq` that consists of the squared values of `r15`. Insert your code. () </span>
 
 ## Loading External Packages
 
@@ -229,6 +229,7 @@ median(rectangles$height,na.rm = TRUE)
 
 ```
 
-##### <span style="color:red">Q4. (A) Look up the "help" page for `mean` or `median`. What does `na.rm` mean? (B) Now look up the "help" page for `NA`. In your own words, what would an `NA` value in the data mean? </span>
+##### <span style="color:red">Q4. (A) Look up the "help" page for `NA`. In your own words, what would an `NA` value in the data mean? (B) Now Look up the "help" page for `mean` or `median`. In your own words, what does `na.rm` mean? (C) Why would you use the argument `na.rm = TRUE` in your mean or median calculation? () </span>
+
 
 ##### <span style="color:red">Q5. Show me the code to calculate the mean and median of the width variable in the rectangles dataset</span>
