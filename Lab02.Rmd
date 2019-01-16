@@ -1,0 +1,234 @@
+---
+title: 'Geog 111A Lab 2: Important Concepts in R'
+author: "Written by Adam W. Davis and Elizabeth C. McBride"
+date: "Fall 2018"
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, eval = FALSE)
+```
+
+This lab will walk you through some more important concepts for learning R. **Please be sure to read everything! Also be sure to run every line of code in this assignment on your own to follow along!**
+
+***
+<span style="color:red">For submission: 
+One script with the code asked for in the questions marked in red. Please make sure you have your **first name initial and full last name** in your document name. </span>
+
+Note: Please only include the answers to the questions in you final script. No need for the example code in the submission file. However, I recommend saving the file where you keep all the example code, and creating a separate file with your answers.
+
+***
+
+## Recap: Creating a script
+
+1. Open RStudio
+2. Click File > New File > R Script
+3. Save your script just like you would save any other document: 
+    a. Push File > Save
+    b. Navigate to the folder location where you would like to save your file
+    c. Name the file, and **make sure it has a `.R` file extension**
+    d. Click "Save"
+
+## Recap: Assigning Names to Objects
+
+We create objects using `<-`, with the name we want to give the object on the left side, and the value(s) we want to give the object on the right. 
+
+Like so:
+```{r}
+myobject <- 5
+```
+
+Once you run that line, R will know that if you type `myobject` you are referring to the number `5`. Throughout your code, it will treat `myobject` **exactly the same** as if you typed the number `5`:
+
+```{r}
+myobject^2 # R will treat this line exactly the same as the next line
+5^2
+```
+
+
+HOWEVER, if you run another line of code later where you redefine your object (assign the same name new values), any code run afterwards referencing that object will use the most recent assignment values.
+```{r}
+myobject <- 55
+
+myobject^2
+```
+
+
+## Data Types
+You can create objects in a wide range of formats. This includes numbers (as you've seen), strings (aka text), and Boolean (`TRUE` / `FALSE`) values. As you will see, it can also store multiple values under the same name (called a vector). You can even store data frames, which is sort of like a collection of related vectors.
+
+You already know a little about numeric objects, so let's learn a bit about the other data types.
+
+
+### Strings -- text/character
+
+Strings are the programming world's word for text. They can include one word, multiple words with spaces, or even include other characters like punctuation (or even numbers). To tell R you want to store something as a string, **you must surround the string with single or double quotation marks**.
+
+Run the following:
+```{r}
+b = "Hello!"
+```
+
+
+
+```{r}
+is.numeric(b)
+is.character(b)
+```
+Character strings need to be enclosed in single- or double-quotes. 
+
+
+### Boolean -- aka true/false
+This is a data type that can have only two values: `TRUE` or `FALSE`. These are often used to test whether certain conditions are true. You can also use them to isolate the values you want from a larger set of values, as you will see shortly.
+
+#### First, a run-through on logical operators:
+
+```{r}
+10 == 10 # Is 10 exactly equal to 10?
+10 >= 9  # 
+10 < 3   # 
+10 != 10 # 
+!TRUE    # 
+```
+
+##### <span style="color:red">Q1. Answer the following in comments in your script. Go to http://www.statmethods.net/management/operators.html and look at the table of Logical Operators. (A) Explain what `10 >= 9` is testing in the form of a question (format it like I did for `10 == 10` in the code above, with the logical test to the left of the comment). (B) Do the same for `10 < 3`. (C) Do the same for `10 != 10`. </span>
+
+
+
+There are other types of true/false tests as well. Run the following:
+```{r}
+a <- 5
+is.numeric(a)
+!is.numeric(a)
+```
+
+The `is.numeric()` function tests whether or not the value stored in `a` is numeric. If it is, it returns `TRUE`, if it is *not*, it will return `FALSE`. By putting `!` in front of it, we "flipped" the question. `!is.numeric()` is asking if `a` is NOT numeric. 
+
+
+### Vectors -- multiple values stored in one place
+A vector is "a sequence of data elements of the same basic type" (http://www.r-tutor.com/r-introduction/vector). You can have a vector of any data type. 
+
+The `c()` function "combines its arguments to form a vector" (from `c()` function help page). Run the following:
+```{r}
+range15 <- c(11,12,13,14,15)
+range15 # run this line to look at your new object in the console
+```
+You have just created a numeric vector object! It is named `range15`, and contains the integers from 11 to 15. You should see it in your `Environment` panel. 
+
+
+
+Vectors can consist of any data type. Below, you will create a vector of strings:
+```{r}
+listOfModes <- c('Auto','Bike','Foot','Bus','Rail')
+listOfModes
+```
+
+
+#### Using Logical Operators on Vectors
+```{r}
+range15TF <- range15 < 14
+range15TF
+```
+This code returns a vector of TRUE/FALSe values. It asks whether or not each value in `range15` is below 14, and returns`TRUE` or `FALSE` for each value.
+
+
+## Data Frames
+
+One particularly useful data structure in R is the `data.frame`, which stores data in an array of named columns (rows can also be named, but you probably don't want to). All the elements of a given column must be of the same type, but a `data.frame` can store multiple types of columns.
+
+For instance, this creates a data frame with one numeric column and one text column:
+```{r}
+df1 <- data.frame(r15 = range15, mode = listOfModes)
+df1
+```
+Note how we were able to name the columns using `=` within the `data.frame` function. 
+
+
+### Elements of a data frame can be accessed using column names
+
+```{r}
+df1$r15 # this will grab all items in the column called r15
+```
+The `$` allows you to select a column of the data frame by its name. See `?Extract` for more information on this and other functions for extracting specific values from your data.
+
+
+### New columns can be created and assigned to the table in much the same way
+
+This creates a new column that is equal to two times the value of `r15` in each row:
+```{r}
+df1$double_r15 <- df1$r15 * 2
+
+df1$newvar
+
+
+df1$newvar <- df1$newvar
+
+
+
+```
+
+
+### You can view data frames in a spreadsheet-like format using the View command:
+```{r}
+View(df1)
+```
+NOTE: Clicking on the `data.frame` in the `Environment` box (upper right corner of Rstudio) has the same effect.
+
+
+##### <span style="color:red">Q2. Create another new variable within* `df1` named `r15_sq` that consists of the squared values of `r15`. Insert your code. </span>
+
+## Loading External Packages
+
+### This command will install a number of packages that will be useful this week and for the rest of the quarter:
+```{r}
+install.packages('tidyverse')
+```
+If you do not have admin priveleges, you may be asked to create a personal library the first time you run this.
+
+
+###In order to use a package you have installed, you need to load the package library:
+```{r}
+library(tidyverse)
+```
+This gives you access to all of the functions in the packages listed in your console when you run the line.
+**NOTE:** You may see a warning about `readr` being built with an earlier version of R. Do not worry about this, everything will still work.
+
+
+## Data I/O
+
+### Data can be loaded from many formats, including standard comma-separated files:
+```{r}
+filelocation <- "C:/Users/mcbri/Documents/GradSchool/Teaching/GEOG111A_F18/Lab_Materials/UCSB-GEOG111A-Lab/rectangles.csv" # change this to the location of your file on your computer, with retangles.csv at the end. 
+rectangles <- read_csv(filelocation)
+```
+
+
+### To make sure the data loaded correctly, take a look at the first few rows of every variable:
+```{r}
+head(rectangles)
+```
+
+
+##### <span style="color:red">Q3. (A) How many variables does the `rectangles` dataset have? (B) How many observations?</span>
+
+
+## Summarizing and Visualizing Data
+
+R's basic functionality includes a number of very useful functions for summarizing data. Let's try a few, using named columns in our dataset.
+
+### Calculate the mean and median rectangle heights in the dataset:
+```{r}
+mean(rectangles$height, na.rm = TRUE)
+
+mean(c(7, 17,  8, 11, 19,  6,  4, 11, 20,  6), na.rm = TRUE)
+
+median(rectangles$height,na.rm = TRUE)
+
+
+```
+
+##### <span style="color:red">Q4. (A) Look up the "help" page for `mean` or `median`. What does `na.rm` mean? (B) Now look up the "help" page for `NA`. In your own words, what would an `NA` value in the data mean? </span>
+
+##### <span style="color:red">Q5. Show me the code to calculate the mean and median of the width variable in the rectangles dataset</span>
