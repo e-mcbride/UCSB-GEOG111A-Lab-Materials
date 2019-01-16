@@ -3,6 +3,8 @@ title: 'Geog 111A Lab 3'
 author: "Adam Davis and Elizabeth McBride"
 date: "October 17, 2018"
 output: html_document
+editor_options: 
+  chunk_output_type: console
 ---
 
 ```{r setup, include=FALSE}
@@ -31,10 +33,10 @@ Note: Please remove unnecessary example code from your the submission file. Howe
 Projects simplify the code process by keeping all the data files and scripts in a "local" directory. You can move the folder containing the project, and all contained scripts will still be able to run. It removes the need for telling R exactly where every data file you want to access "lives" in your computer. **From now on, when you do your labs, you will save any new scripts or data to the project folder you will create below:**
 
 1. Click File > New Project > New Directory
-2. In the “Project Type” window, click “New Project”
-3. In the “Create New Project” window under "Directory Name", name your project (e.g. `yourSurname_GEOG111A_Project.Rproj`)
-4. Under “Create project as subdirectory of”, click “Browse…” and navigate to the folder location where you would like to store your 111A lab materials for the rest of the quarter
-5. Leave everything else the same, click “Create Project”. This should open a new RStudio window.
+2. In the "Project Type" window, click "New Project"
+3. In the "Create New Project" window under "Directory Name", name your project (e.g. `yourSurname_GEOG111A_Project.Rproj`)
+4. Under "Create project as subdirectory of", click "Browse..." and navigate to the folder location where you would like to store your 111A lab materials for the rest of the quarter
+5. Leave everything else the same, click "Create Project". This should open a new RStudio window.
 6. In the top right corner of the Rstudio window, you should now see the name of the project file. This confirms that you are now working within the 111A project. 
 
 
@@ -249,7 +251,7 @@ Because...
 
 The console should show that all of the above formulations select the same 1,947 people!
 
-##### <span style="color:red">Q3. (A) What does a 0 mean for the{\fontfamily{cmtt} \selectfont Male} variable? (B) How would you select only people who are 25 years old and African American? (2) </span>
+##### <span style="color:red">Q3. (A) What does a 0 mean for the `Male` variable? (B) How would you select only people who are 25 years old and African American? (2) </span>
 
 #### ALSO NOTE: these functions have not modified the original object `people`!
 To store the changes you've made, you have to save the function's output to a variable, eg:
@@ -322,7 +324,7 @@ You first take the mean of `people$Age`, then round it. Note how the first funct
 people %>% select(hhid:Age) %>% filter(Age < 10)
 ```
 
-##### <span style="color:red">Q4. Examine the subset you just selected. (A) What are the names of all the columns grabbed in this selection process? (B) What did the{\fontfamily{cmtt} \selectfont filter} function do? (C) How many observations (rows) total were included in the selection? (3) </span>
+##### <span style="color:red">Q4. Examine the subset you just selected. (A) What are the names of all the columns grabbed in this selection process? (B) What did the `filter` function do? (C) How many observations (rows) total were included in the selection? (3) </span>
 
 #### Another benefit of this is that it lets RStudio autocomplete column names!
 To try this, enter this in the console: `people %>% select(Ag`  
@@ -389,5 +391,6 @@ people %>% select(hhid,pnum,Sum_PMT) %>%
 ```
 Which it basically does!
 
-##### <span style="color:red">Q6. Show me the code to get difference betweem a person's Number of Trips and the mean Number of Trips in the sample (2)</span>
+##### <span style="color:red">Q6. Show me the code to get the difference between a person's Number of Trips and the mean Number of Trips in the sample (4) </span>
+NOTE TO SELF/FUTURE TA: Q6 could use a revamp.
 
