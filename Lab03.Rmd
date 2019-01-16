@@ -1,0 +1,393 @@
+---
+title: 'Geog 111A Lab 3'
+author: "Adam Davis and Elizabeth McBride"
+date: "October 17, 2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, eval = FALSE)
+```
+
+
+## Introduction
+
+This assignment will begin by having you create an Rstudio project and add data and this week's lab script to it.
+
+This assignment will begin by walking you through some data manipulation in R using the package `dplyr` from the `tidyverse`. Functions covered include `select`, `filter`, `arrange`, `mutate`, and `summarize`. This script also introduces the `%>%` operator for multi-step processes. It will also include an exploration of the data we will be using from the California Household Travel Survey (CHTS).
+
+**Please be sure to read everything! Also be sure to run every line of code in this assignment on your own to follow along!**
+
+***
+<span style="color:red">For submission: One script with the code asked for in the questions marked in red. Please make sure you have your **first name initial and full last name** in your document name. </span>
+
+Note: Please remove unnecessary example code from your the submission file. However, I recommend saving the file where you keep all the example code, and creating a separate file with your answers. 
+
+***
+
+
+## Creating an Rstudio Project
+
+Projects simplify the code process by keeping all the data files and scripts in a "local" directory. You can move the folder containing the project, and all contained scripts will still be able to run. It removes the need for telling R exactly where every data file you want to access "lives" in your computer. **From now on, when you do your labs, you will save any new scripts or data to the project folder you will create below:**
+
+1. Click File > New Project > New Directory
+2. In the “Project Type” window, click “New Project”
+3. In the “Create New Project” window under "Directory Name", name your project (e.g. `yourSurname_GEOG111A_Project.Rproj`)
+4. Under “Create project as subdirectory of”, click “Browse…” and navigate to the folder location where you would like to store your 111A lab materials for the rest of the quarter
+5. Leave everything else the same, click “Create Project”. This should open a new RStudio window.
+6. In the top right corner of the Rstudio window, you should now see the name of the project file. This confirms that you are now working within the 111A project. 
+
+
+More information on projects can be found here: https://support.rstudio.com/hc/en-us/articles/200526207-Using-Projects
+
+
+
+### Adding a new script in your project folder
+When you create the project, a folder will be created that contains your `.Rproj` file. This folder is where you will store all datasets and scripts you want to use for a project. You will now add your first script to your project folder.
+
+1. Create a new script by File > New File > R Script
+2. Save the file with whatever name you prefer (e.g. `yourlastname_Lab3.R`) in the folder that contains your R project.
+
+### Organizing your project folder
+
+1. Navigate to your project folder in File Explorer (PC) / Finder (Mac)
+2. Create a new folder named "Data"
+3. Create another folder named "Outputs"
+
+
+### Adding data to your project
+
+1. From Gauchospace, download the dataset(s) for today's lab.
+2. Add them to the `/Data` folder you created
+
+The files added to your `/Data` folder will never be directly edited. They should stay the same as the day you downloaded them. Any edited versions will be saved to the "Output" folder. This is to ensure that you maintain a "clean" copy of the original files.
+
+
+## Packages and Functions
+
+#### Functions
+
+**Functions** let you do things in R without having to write complicated code from scratch. Last week, we used the `mean()` function. This allows us to calculate the mean of something without having to carefully write out the entire calculation from scratch, like so: `(1+5+8+8+10+22+17)/7`
+
+Some functions are built in to base R (like `mean()`), and some you get from external packages you install. You can also create your own.
+
+#### Packages
+
+If you haven't already done this step on the **computer you are currently using**, start by installing the `tidyverse`. This will install a number of packages on the computer that will be useful this week and for the rest of the quarter:
+```{r}
+install.packages('tidyverse')
+```
+If you do not have admin priveleges, you may be asked to create a personal library the first time you run this.
+
+
+To use functions from a package you have installed, **you need to load the package library**:
+```{r}
+library(tidyverse)
+```
+You must **load the library at the beginning of every new R session.** This gives you access to all the functions in the packages listed in your console when you run the line.
+
+**NOTE:** You may see some warnings about packages being built with an earlier version of R. Do not worry about this, everything will still work. You may see some other warnings about objects being "masked" from other packages. That is fine too.
+
+
+## Tidyverse 
+In this section, you will learn about the functions from the `tidyverse` we will use the most this quarter.
+
+The `tidyverse` is NOT a package itself. Rather, it is a collection of packages with various functionalities. Combined, these packages create a powerful set of tools for data science. The most used packages today will be 
+
+<span style="color:red">**Tips:**</span>
+
+* Packages in the `tidyverse` have well crafted documentation, including cheat sheets (which I like to have open at all times):
+https://www.rstudio.com/resources/cheatsheets/
+
+* There are also detailed code vignettes to help you learn the packages on your own. The vignettes for `dplyr` availabe here:
+https://cran.r-project.org/web/packages/dplyr/index.html
+
+
+Starting now, the code and sequence of this lab is adapted from the `dplyr` vignette "Introduction to dplyr" found here:
+
+https://cran.r-project.org/web/packages/dplyr/vignettes/dplyr.html
+
+
+
+## Introducing our data for the quarter
+
+**CHTS Data Dictionary**
+
+1. Download the Data Dictionary from Gauchospace (`DataDictionary.xlsx`) and add it to your `/Data` folder. 
+2. Using a spreadsheet software, open the Data Dictionary. 
+3. Take some time to study the first three sheets: "Data File Guide", "PersonData_111A", and "HHData_111A". Make sure to examine the variables, descriptions, and values.
+
+##### <span style="color:red">Q1. (A) In a couple commented sentences, describe the types of variables contained in `PersonData_111A`. What information does it provide about respondents? (B) Do the same for `HHData_111A`. (C) Notice that `hhid` is present in both datasets. How might this be useful to us? (6) </span>
+
+
+## Read and Write Files
+
+When you want to work with data you already have on your computer, you will need to `read` it into R and give it a name:
+```{r}
+peopleFull <- read_csv(file = "Data/PersonData_111A.csv")
+```
+Last week, we did this with the dataset `rectangles.csv`. However, if you remember, you had to write in the entire file directory between those quotes. One convenient feature of using a Project is that it does not need you to write that whole directory! Only subdirectories (like `Data/`).
+
+**IMPORTANT NOTE:** When you read in a file to R, any changes you make will **NOT** be changing your original dataset file. The original stays exactly the same. You are essentially working with a copy of that dataset that you have loaded into R. You can save changes using a `write` function.
+
+Below, you will write a new file to `Data/`. You will be taking `peopleFull` you created above, converting it to another filetype called `.Rds`, and saving it with the name `PersonData_111A.Rds`:
+```{r}
+write_rds(x = peopleFull,path = "Data/PersonData_111A.Rds")
+```
+In this class, we'll mostly be using this R-specific data format, `.Rds` (R dataset) since it will load more quickly and consistently on everyone's computer. In future labs, you will read in the file you just created instead of `PersonData_111A.csv`.
+
+
+
+## Select -- select and rename columns
+Very often, you'll be working with datasets that contain way more columns than you need. In this case, it's very cumbersome to carry around all 50 columns in the people dataset
+
+#### First, display all the column names, so you know what you're working with:
+```{r}
+names(peopleFull)
+```
+Notice they have the same names as the variables from the DataDictionary?
+
+
+#### It's easy to select a single colum in the basic R:
+```{r}
+ageCol <- peopleFull$Age 
+```
+Rstudio adds this to your `Environment` (top left) as a Large Numeric, under Values
+
+#### But grabbing multiple columns is a MAJOR pain. You can use ranges of numbers, if you figure them out:
+```{r}
+peopleFull[,1:10] 
+```
+This selects the first 10 columns, from `hhid` to `persPacIsl`
+
+#### But otherwise, you have to name columns in a character vector, eg:
+```{r}
+peopleFull[,c('hhid','pnum','Age')]
+```
+
+#### The function `select` from the `dplyr` package provides a number of easy solutions to this problem. You can name columns individually:
+```{r}
+select(.data = peopleFull, hhid, pnum, Age)
+```
+**Note:** the first entry is the dataset name. The next 3 are the names of the columns you want.
+
+
+#### Or ask for all columns in a certain range:
+```{r}
+select(peopleFull, hhid:persOthr, Sum_Trips, Sum_PMT) 
+```
+This selects all cols between hhid and persOthr plus the last two
+
+#### Or even grab columns based on the format of their name!
+```{r}
+select(peopleFull, hhid:Age, starts_with('pers'), starts_with('Sum'))
+```
+This selects columns that start with the string "pers", and columns that start with "Sum"
+
+#### It's easy to rename variables too using the equal sign in the selection:
+```{r}
+select(peopleFull, personAge = Age) # selects ONLY the Age column, renames it personAge
+rename(peopleFull, personAge = Age) # keeps all columns, renames Age to personAge
+```
+You can rename columns when you select the ones you want. If you want to keep all the columns and just rename some of them, you can use the function `rename`.
+
+#### or select specific columns to **exclude**, using a `-` sign:
+```{r}
+select(peopleFull, -persDKrace, -persRFrace) 
+```
+
+##### <span style="color:red">Q2. Provide the code you would use to `select` all columns from `peopleFull` EXCEPT the column indicating if they were born in the USA? Check your DataDictionary if you need clues. (1) </span>
+
+We'll be using a simplifed version of the dataset we will name `people` for the rest of the script. Created below:
+```{r}
+people <- select(peopleFull, hhid:Age, starts_with('pers'), starts_with('Sum'))
+people <- select(people, -persDKrace, -persRFrace) 
+```
+ Check your `people` table by pressing the blue drop-down arrow to the left of its name in the "Environment" window of RStudio. It should have the following 13 columns:
+`hhid`, `pnum`, `Male`, `Age`, `persHisp`, `persWhite`, `persAfricanAm`, `persNativeAm`, `persAsian`, `persPacIsl`, `persOthr`, `Sum_Trips`, and `Sum_PMT`.
+
+## Filter -- select rows
+
+#### First, a reminder of the logical operators:
+```{r}
+10 == 10 # TRUE
+10 >= 9  # TRUE
+10 < 3   # FALSE
+10 != 10 # FALSE
+!TRUE    # FALSE
+```
+For quick descriptions of these and other operators, check this site: http://www.statmethods.net/management/operators.html
+
+
+#### "AND" and "OR"
+You can use `&` for AND, and `|` for OR. This allows you to include multiple logical operators in one TRUE/FALSE statement. `&` is used if you want to know when **both conditions are true at the same time**. `|` is used if you want **one condition, OR the other condition, OR both** to be true at the same time. 
+
+#### You'll often want to perform analysis on a specific subset of the observations in your data.
+We already learned how to do that in base R. Here's how to extract only **males over the age of 75** in base R:
+```{r}
+people[people$Age > 75 & people$Male == 1,] 
+```
+NOTE: the `,<blank>` (comma followed by nothing) means grab all columns.
+
+#### The `dplyr` syntax is simpler, use the `filter` function:
+```{r}
+filter(.data = people, Age > 75, Male == 1)
+```
+
+#### or the equivalent
+```{r}
+filter(.data = people, Age > 75 & Male == 1)
+```
+
+#### For boolean variables / variables where all values are either 0 or 1, you can just do this:
+```{r}
+filter(people, Age > 75 & Male)
+```
+Because...  
+1 == `TRUE`  
+0 == `FALSE`
+
+The console should show that all of the above formulations select the same 1,947 people!
+
+##### <span style="color:red">Q3. (A) What does a 0 mean for the{\fontfamily{cmtt} \selectfont Male} variable? (B) How would you select only people who are 25 years old and African American? (2) </span>
+
+#### ALSO NOTE: these functions have not modified the original object `people`!
+To store the changes you've made, you have to save the function's output to a variable, eg:
+```{r}
+nonagenarians <- filter(people, Age >= 90)
+```
+
+
+#### Filter operations using OR are somewhat more restricted, but still straightforward:
+```{r}
+filter(people, persAfricanAm == 1 | persNativeAm ==1)
+```
+#### or the equivalent (because they are Boolean variables)
+```{r}
+filter(people, persAfricanAm | persNativeAm)
+```
+Both of these select the same 9,402 people
+
+## Arrange -- sort data
+Sometimes, you'll want to rearrange your data based one or more variables
+
+#### In base R, this is achieved with bracket notation and the `order()` function:
+```{r}
+sampToSort <- sample_n(people,10) # create a random sample of 10 people look at
+sampToSort$Age # ages of people in sample
+order(sampToSort$Age) # returns rank order of ages. 1st entry is the index of the lowest observation
+sampToSort
+sampToSort[order(sampToSort$Age),'Age'] # order applied to rows, only Age column grabbed for simplicity
+```
+
+#### `dplyr` makes this simpler by taking one step out of the process:
+```{r}
+arrange(sampToSort,Age)
+```
+
+#### to sort in the opposite direction, use the `desc()` function:
+```{r}
+arrange(sampToSort,desc(Age))
+```
+
+
+## Distinct -- get unique values
+The process for grabbing unique observations is basically the same between R basic and `dplyr`, but is MUCH faster in `dplyr`.
+
+#### here's how to grab the unique household id's:
+```{r}
+distinct(people, hhid) # there are 36,925 unique households in this version of the dataset
+```
+
+
+## `%>%` -- multi-step processes with the pipe operator
+
+Because each function in dplyr is relatively simple, it is often necessary to call multiple functions in sequence to perform an operation.
+
+As you may have noticed, the input dataset is the first input to all `dplyr` functions. Because of this, `dplyr` recommends the `%>%` operator to chain functions together in sequence. 
+
+`%>%` works by entering the object on the left into a function as the first argument. This means that instead of reading functions inside-out, you can read left-right.
+
+So `mean(people$Age)` is the same as `people$Age %>% mean()`
+
+#### This can be repeated as many times in one operation as you want!
+```{r}
+round(mean(people$Age), digits = 1) # first compute mean, then round
+people$Age %>% mean() %>% round(digits = 1) # same, just (maybe) easier to read
+```
+You first take the mean of `people$Age`, then round it. Note how the first function needs to be read "inside-out" to interpret it, while the second one is read left-right.
+
+#### So with `dplyr`, if you want to select a subset of rows and columns:
+```{r}
+people %>% select(hhid:Age) %>% filter(Age < 10)
+```
+
+##### <span style="color:red">Q4. Examine the subset you just selected. (A) What are the names of all the columns grabbed in this selection process? (B) What did the{\fontfamily{cmtt} \selectfont filter} function do? (C) How many observations (rows) total were included in the selection? (3) </span>
+
+#### Another benefit of this is that it lets RStudio autocomplete column names!
+To try this, enter this in the console: `people %>% select(Ag`  
+then hit `<Tab>`
+
+## Mutate -- calculate new columns
+It’s often useful to create new columns from your dataset. One method to do this in base R using `$` notation is shown in earlier labs. In the `tidyverse`, you would use `mutate`.
+
+#### Let's calculate each respondent's average trip length:
+```{r}
+people %>% select(hhid:Age, Sum_PMT, Sum_Trips) %>%
+  mutate(mean_TrpLength = Sum_PMT / Sum_Trips)
+```
+NOTE: commands can span multiple lines, as long as the lines are connected by a simple operator (`+-*/`) or a `%%` operator (e.g. `%>%` `%in%`) or are within parentheses. You can use `Ctrl+Enter`/`Command+Enter` on any line within a command and it will run the command as a whole.
+
+#### You can use variables created in a mutate call within the same call:
+```{r}
+people %>% select(hhid:Age, Sum_PMT, Sum_Trips) %>%
+  mutate(maleXnum = Male * pnum,
+         maleXnumXAge = maleXnum * Age) 
+```
+Granted, this creates two meaningless variables (person's number if male and person's number*age if male), but it can be very useful in other cases.  
+NOTE: Don't forget to use the built-in "Help" if you don't know what a function does (e.g. type `?mutate` to learn more about it). You can also find more information on the `dplyr` cheat-sheet linked at the beginning of the assignment.
+
+
+##### <span style="color:red">Q5. Show me the code to create a new variable where you divide the respondents' ages in half. (2)</span>
+
+## Summarize -- calculate aggregate statistics from data
+To learn about the overall characteristics of your dataset, use the `summarize` command, which condenses your data into a single row.a
+
+#### Average age of respondents:
+```{r}
+people %>% summarize(meanAge = mean(Age))
+```
+
+#### Average age, number of trips, distance, and average trip length:
+```{r}
+people %>% summarize(meanAge = mean(Age),
+                     meanPMT = mean(Sum_PMT),
+                     meanTrips = mean(Sum_Trips),
+                     meanLength = meanPMT / meanTrips)
+```
+
+#### Maximum PMT and trips:
+```{r}
+people %>% summarize(maxPMT = max(Sum_PMT),
+                     maxTrips = max(Sum_Trips))
+```
+
+### Using summary functions in mutate:
+Summary functions can also be used to create new variables using `mutate`
+
+#### so to get difference betweem a person's PMT and the mean PMT in the sample:
+```{r}
+people %>% select(hhid,pnum, Sum_PMT) %>% 
+  mutate(PMTdif = Sum_PMT - mean(Sum_PMT))
+```
+
+#### just to make sure, this value should have mean 0:
+```{r}
+people %>% select(hhid,pnum,Sum_PMT) %>% 
+  mutate(PMTdif = Sum_PMT - mean(Sum_PMT)) %>%
+  summarise(mean(PMTdif))
+```
+Which it basically does!
+
+##### <span style="color:red">Q6. Show me the code to get difference betweem a person's Number of Trips and the mean Number of Trips in the sample (2)</span>
+
