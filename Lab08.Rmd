@@ -1,0 +1,292 @@
+---
+title: 'Lab 8: Graphical Analysis'
+author: "Adam Davis and Elizabeth McBride"
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
+
+TO NEXT YEAR'S TA: NEED TO SWAP A COUPLE LINES OF CODE AROUND FOR Q5 TO MAKE IT MATCH THE EXAMPLE GIVEN IN THE PRESENTATION SO STUDENTS DONT DRIVE YOU MAD WITH QUESTIONS 
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, eval = FALSE, results = FALSE, warning = FALSE, message = FALSE)
+```
+
+***
+Please read all materials in labs and run all code! TIP: Don't just run the example code in the labs. **Inspect the results you get**, and see how they relate to the text around them.
+
+***
+
+##### Clean environment
+```{r}
+rm(list=ls())
+```
+
+##### Load packages
+```{r}
+library(tidyverse)
+```
+
+
+
+#### Load and combine person / household data
+
+```{r}
+PersonData <- read_rds('Data/PersonData_111A.Rds')
+HHData <- read_rds('Data/HHData_111A.Rds')
+hh_bgDensity <- read_rds('Data/hh_bgDensity.Rds')
+
+personHHData <- left_join(PersonData, HHData) %>% left_join(hh_bgDensity)
+```
+
+
+## Plotting in base R
+The easiest way to make basic plots in R is using the `plot` (and `hist`) commands:
+```{r}
+plot(personHHData$Age,personHHData$Sum_Trips) # scatterplot of age against number of trips
+hist(personHHData$Sum_Trips) # histogram of total trips
+```
+
+These methods produce simple, but fairly unattractive results and are hard to customize.
+
+## Plotting with `ggplot2`
+`ggplot2` is a package included in the `tidyverse` for plotting. It builds plots piece-by-piece, starting with the data, and ending with labels and axes.
+There's a pretty useful cheatsheet here (Titled "Data Visualization Cheat Sheet"): https://www.rstudio.com/resources/cheatsheets/  
+
+And a very thorough manual here: http://docs.ggplot2.org/current/index.html
+
+### Learning `ggplot2` concepts
+
+This assignment will begin with some reading and questions, then you will create plots of your own. 
+
+***
+
+Please go to the following site:
+
+https://www.ling.upenn.edu/~joseff/avml2012/#Section_1.5
+
+
+
+If the link above is not working, go here:
+
+
+https://jofrhwld.github.io/avml2012/#Section_1.5
+
+
+
+Read the "ggplot2 Basic Concepts" introduction, and the "Layers" and "Aesthetics" subsections and answer the following questions about each section. It may help to follow along by running the example code as you go. You may also use other resources like the Rstudio Data Visualization Cheat Sheet to help answer the questions if you wish, but it is not necessary. 
+
+
+**Use your own words for all answers and include answers as comments in your script.**
+
+
+
+#### <span style="color:red">Q1: Layers</span> 
+
+(A) Explain how `ggplot2` uses layers for plotting. (2)
+
+(B) What is the benefit of the layer system used for plotting with `ggplot2`? (1)
+
+Data layer: 
+
+(C) What two functions are used to create the data layer? (1)
+
+Geometries layer:
+
+(D) What operator do you use to add a new layer to a plot? (0.5)
+
+(E) When should you change the axis names? (0.5)
+
+
+You can skip subsections "Statistics Layer", "Scale Transformations", and "Cosmetic Alterations". 
+
+
+
+
+#### <span style="color:red">Q2: Aesthetics </span> 
+
+
+(A) The writeup makes a distinction between **setting** and **mapping** an aesthetic characteristic. Briefly explain the difference between them. (2)
+
+Inheritance:
+
+(B) Yes or no: If you have aesthetic mappings (`aes()`) in one `geom` layer, will it be inherited by other `geom` layers in your plot? (1)
+
+(C) In what situation *do* `geom` layers inherit aesthetic mappings? (1)
+
+Grouping:
+
+(D) When you map a categorical variable to an aesthetic in the `ggplot()` argument, what effect does this have on the `geom_` layers that follow? (2)
+
+More aesthetics and their use:
+
+(E) What argument would you use to control the color of two dimensional geoms? (1)
+
+*** 
+
+**NOTE:**
+You do not need to read the rest of the writeup, but if you are wondering what something does in this lab, look it up on this web page. It probably has a great description of what is going on! It will also be useful to have the Data Visualization Cheat Sheet open as a quick reference.
+
+
+
+
+### HISTOGRAM
+Start with data and "aesthetic mappings" with: `data %>% ggplot(aes())` (basically an object that stores the relationships between columns of your data)
+```{r}
+plot1var <- personHHData %>% ggplot(aes(x = Sum_Trips)) # simple one-variable mapping
+```
+The `ggplot()` function creates a `gg` object. This object can be used to create all kinds of plots. You tell R what variables you want to use in your plot using `aes()` within `ggplot()`. The function `aes()` is also where you would tell R any aesthetic modifications (like colors, line styles, etc). In this case, we are preparing to make a histogram. Since histograms only use one variable, we will only select the variable we want to plot (`Sum_Trips`). 
+
+
+In `ggplot`, you make a plot by **ADDING** geometries to your plot object:
+```{r}
+plot1var + geom_histogram()
+```
+
+
+You can embellish your plot by adding other elements, like legend, title, and axis labels with `xlab`, `ylab`, and `ggtitle`
+```{r}
+plot1var + geom_histogram() + xlab('Total Trips') + ylab('People') + ggtitle('Histogram of Total Trips')
+```
+`xlab` labels the x-axis, `ylab` labels the y-axis, and `ggtitle` gives a title to the plot.
+
+
+#### SAVE: to save the most recent plot, use the `ggsave` function:
+```{r}
+ggsave('examplePlot.png') # defaults are usually okay, THIS SAVES MOST RECENT PLOT
+```
+
+
+##### <span style="color:red">Q3. How does total distance traveled vary over the sample? Please include your code on your answer sheet. *Make a histogram of Person Miles Traveled, add appropriate titles, and briefly discuss the results in comments in your script. You do not need to attach your final plots, as long as I can run your code and get the plot myself.* (10) </span>
+
+### BOXPLOT
+One continuous variable -- HAS TO BE SECOND VARIABLE  
+And one comparative / grouping variable -- HAS TO BE FIRST:
+```{r}
+plotBox <- personHHData %>% select(Sum_Trips, Male) %>%
+  mutate(Gender = factor(ifelse(Male==1,'M','F'))) %>%
+  ggplot(aes(Gender, Sum_Trips))
+
+plotBox + geom_boxplot() + ylab('Total Trips') + ggtitle('Total Trips: Men vs Women')
+```
+
+#### Complicated Boxplot example suspiciously like Q4:
+We will now be creating 4 boxplots comparing percent of trips by mode
+
+**First**, grab ONLY needed variables (number of trips by each mode and total trips)
+```{r}
+cPlot1data <- personHHData %>% 
+  select(Sum_Trips,Walk_trips,DriveAlone_trips,Passenger_trips,Allothers_trips)
+```
+
+**Second**, create the variable you actually want (share of trips by mode). To avoid dividing by zero, get rid of people with no trips.
+```{r}
+cPlot1TripsByMode <- cPlot1data %>% 
+  filter(Sum_Trips > 0) %>%
+  mutate(Walk  = Walk_trips / Sum_Trips,
+         DriveAlone = DriveAlone_trips / Sum_Trips,
+         Passenger  = Passenger_trips / Sum_Trips,
+         Transit = Allothers_trips / Sum_Trips)
+```
+
+**Third**, reformat data from wide to long. Use function `tidyr::gather` on all columns you want to stack (see Data Import cheatsheet from https://www.rstudio.com/resources/cheatsheets/ )
+```{r}
+cPlot1Long <- cPlot1TripsByMode %>% 
+  select(-ends_with('trips'), Sum_Trips) %>% # get rid of unneeded columns
+  gather('Mode','Share')
+```
+
+**Fourth**, create the plot!
+```{r}
+cPlot1 <- cPlot1Long %>% ggplot(aes(Mode,Share))
+
+cPlot1 + geom_boxplot() + scale_y_continuous(labels=scales::percent)
+```
+
+##### <span style="color:red">Q4. How does the share of travel distance vary between modes? Please include your code on your answer sheet. *Make a figure that contains a boxplot for percent of travel distance by each mode (Walk, DriveAlone, Passenger, Transit). Add appropriate titles, and briefly discuss the results in comments in your script.* (10) </span>
+
+
+### STACKED BAR CHART 
+For Q5, this is the approach you should use.
+
+The question asks for mode share (% of trips) for weekdays vs weekends as a stacked bar chart. This example will produce a stacked bar chart of mode share for each day of the week. To get from this to what you need for Q5, when changes to the code are necessary, they will be indicated by \*\* written in the instructions. We have created the "weekend" variable in the Lab 4 presentation example, so check that for hints on creating that "weekend" grouping variable.
+
+What variables do we need? Distance in each mode, day of week.
+
+Select DOW and Distance in each mode:
+```{r}
+cPlot2data <- personHHData %>% select(DOW,ends_with('trips'))
+```
+
+
+Check variables:
+```{r}
+names(cPlot2data) 
+```
+Sum_Trips and HH_nTrips are included but unwanted, SO:
+
+
+Get rid of unwanted variables:
+```{r}
+cPlot2data <- cPlot2data %>% select(-Sum_Trips, -HH_nTrips)
+```
+
+The data in the bars must all come from one column. We currently have trips stored in 7 columns, so stack the columns using `gather` again (stack all variables EXCEPT `DOW`):
+```{r}
+cPlot2dataStacked <- cPlot2data %>% gather('Mode','Trips', -DOW)
+```
+Writing `-` before `DOW` tells R not to stack that column.
+
+
+Get total trips by day for each mode using `group_by` and `summarize`. Group by \*\*DOW\*\* and Mode, then sum all values that are in each discrete category for those variables:
+```{r}
+cPlot2dataSum <- cPlot2dataStacked %>% group_by(DOW, Mode) %>%
+  summarize(ModeTrips = sum(Trips))
+
+cPlot2dataSum
+```
+**HINT:** you can name a `group_by` variable you create, using the same code as you would in a `summarize` or `mutate` command (e.g., `group_by(adult = (Age >= 18))` would name your new grouping variable "adult", where "TRUE" means over 18, and "FALSE" means under 18). When you are writing your code for Q5, you should do this to create a "weekend" variable because you will need that name for the next step.
+
+Define ggplot mappings:  
+x = \*\*DOW\*\* because we want one bar for each day  
+y = Trips, since that's the variable we'll be making plots from  
+fill = Mode, since we want to know the percent of trips in each mode
+```{r}
+cPlot2 <- cPlot2dataSum %>% ggplot(aes(x=DOW, y=ModeTrips, fill=Mode))
+
+cPlot2 + geom_bar(stat = 'identity', position = 'Fill') +
+  scale_y_continuous(labels=scales::percent)
+```
+NOTE: if your graph is hard to read, click the "Zoom" button above it.  
+
+
+To get it to plot in the right order, it takes a bit of work:
+```{r}
+DOWorder <- c('Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday')
+```
+  
+Make an ordered factor:
+```{r}
+cPlot2dataSumOrdered <- cPlot2dataSum %>% 
+  mutate(DOWo = factor(DOW,levels=DOWorder, ordered=T))
+
+cPlot2o <- cPlot2dataSumOrdered %>% ggplot(aes(x=DOWo, y=ModeTrips, fill=Mode))
+
+cPlot2o + geom_bar(stat = 'identity', position = 'Fill') +
+  scale_y_continuous(labels=scales::percent)
+```
+  
+Play around with themes to easily make minor changes to the appearance:
+```{r}
+library(ggthemes) # Dont forget to run install.packages("ggthemes") the first time you run this code
+plot3var + geom_point() + theme_dark()
+plot1var + geom_histogram() + theme_economist()
+plot1var + geom_histogram() + theme_tufte() +
+  xlab('Total Trips') + ylab('People') + ggtitle('Total Trips')
+```
+
+
+##### <span style="color:red">Q5. How does mode share change between weekdays and the weekend? Please include your code on your answer sheet. *Make a stacked bar chart of mode share, with one column corresponding to weekends and one to weekdays. Add appropriate titles and legend, and briefly discuss the results. * (10) </span>
+
+**HINT:** We created the "weekend" variable previously in the Lab 4 presentation example.

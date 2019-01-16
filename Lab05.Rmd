@@ -1,0 +1,143 @@
+---
+title: 'Geog 111A Lab 5: Concept Review and Joining Files'
+author: "Adam Davis and Elizabeth McBride"
+output:
+  html_document: default
+  pdf_document: default
+editor_options: 
+  chunk_output_type: console
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, eval = FALSE, results = FALSE, warning = FALSE, message = FALSE)
+```
+
+***
+Please read all materials in labs and run all code! TIP: Don't just run the example code in the labs. **Inspect the results you get**, and see how they relate to the text around them.
+***
+
+### Setting Up
+
+#### Adding new data to your project
+
+1. From Gauchospace, download the newly-added Household dataset
+2. Add it to the `/Data/` folder of your Project folder
+
+**Remember:** The files added to your `/Data/` folder will almost never be directly edited. They should stay the same as the day you downloaded them. Any edited versions will be saved to the "Output" folder. This is to ensure that you maintain a "clean" copy of the original files.
+
+
+##### Clean environment
+```{r}
+rm(list=ls())
+```
+
+
+##### Load packages
+```{r}
+library(tidyverse)
+```
+
+### Reading and Writing in R (with conceptual review)
+You can create objects from data you already have on your computer. That is called "reading" data into R. When the data you read in is a table with rows and columns, in R we call objects of this type "data frames". I will also often use the term "dataset".
+
+##### Read person data frame and household data frame into Environment
+```{r}
+peopleFull <- read_rds('Data/PersonData_111A.Rds')
+
+hhFull <- read_csv('Data/HHData_111A.csv')
+```
+When you run the `read` line `peopleFull <- read_rds(...)`, you are taking your survey data file that you already have saved on your computer and **making a copy of that dataset in R as a named object** you call `peopleFull`. Same idea goes for `hhFull`.
+
+You can think of `peopleFull` and `hhFull` as **copies** of the datasets because objects in R are not anchored to files saved on your computer. So changes to R objects WON'T OVERWRITE ANY FILES ON YOUR COMPUTER. 
+
+Of course, it is possible to save things you create in R onto your computer, but it requires a `write` command. Running a `write` command is how you **save something you did in R onto your computer.** This is nice because you don't have to worry about accidentally permanently messing up your original data files while you do things in R. 
+
+Before moving on, you will **`write`** an .Rds file version of this household dataset to the `Data/` folder of your project. In future labs, you will be loading this `.Rds` version of the file that you create in Question 1 instead of the `.csv`. This is because `.Rds` files are an R-specific format that is quicker to load.
+
+
+
+##### <span style="color:red">Q1. **Write** an .Rds version of this household dataset to the `Data/` folder of your project. Make sure to name it `HHData_111A.Rds`. Include your code. *(see Lab 3 if you need a reminder on how to do this).* (2) </span>
+
+
+### Assigning Names to Objects (Concept Discussion)
+In terms of the objects in your environment, when you write code to run a command, there are generally three possible outcomes:
+
+* If you write code **without assigning a name** at the beginning (i.e. without `obj_name <-`), 
+     + there will be **no permanently stored changes to any object(s) you used in that code**.
+     + All objects in your Environment stay exactly the same.
+* If you **assign an unused name to an object**, 
+     + there will *still* be **no permanently stored changes to any object(s) you used in that code**. The objects you used in that code will not be affected. 
+     + The **previously-existing objects and the new one will all be available separately** under their unique names. 
+* If you **assign your object a name that already exists** in your Environment, 
+     + it will **overwrite the old object with the new one**. 
+     + The changes you made will permanently change the value under that name unless you rerun the earlier lines of code where that object was first created.
+
+Example of this process:
+
+* We have our original dataset called `peopleFull`. We want to remove unnecessary columns to make our lives a little easier when we have to scroll through everything. So, we write some code that would take "``peopleFull` and remove columns with `select()`.
+* HOWEVER, we want to maintain `peopleFull` as a copy of the original data with all 50 columns (in case we change our minds later and want to use different columns in our analysis).
+* So when we use `select()` to remove columns, we assign the modified dataset the new name `people` (This happens in the command that starts with `people<-` )
+
+```{r}
+people <- peopleFull %>% 
+  select(hhid:persOthr,DriverLic:Employed,Student,workday,Walk_trips:Allothers_trips,Sum_Trips,Sum_PMT)
+```
+Now, the old copy is still in our Environment as `peopleFull`, *and* we have a new modified version in our Environment named `people` (see top right panel)
+
+Long story short: If you want something you do in your code (like creating a new column in your dataset) to be **saved as a change** so you can access it again later (like your smaller dataset), you will **ALWAYS need to store the change by assigning a name at the beginning of the code** (i.e. `obj_name <- ... `). 
+
+
+### Review of Logical Statements TRUE/FALSE, AND/OR
+
+
+
+
+
+#### `filter()`
+
+The `filter()` function takes conditional statements and returns only the observations that would return TRUE?
+
+##### <span style="color:red">Q2. (A) How would you use `filter` to get the people who traveled more than 50 miles driving alone? (B) How would you get the people who are younger than 15 and older than 65? (C) How would you get the people who made at least 1 walking trip? (D) How would you get the people who made at least one walking trip or they made at least one biking trip? (E) How would you get the people who made no trips driving alone and they are under 15 years old? (5) </span>
+
+
+
+### Joining data
+It is often necessary to bring together information contained in multiple datasets. 
+
+In `dplyr`, joins are easy to code and ~2-3 orders of magnitude faster than the equivalent commands in base R for moderately large datasets (like 10,000+ keys to join).
+
+To perform a table join, your datasets must have one (or more) variable in common. In this case, the `people` dataset has the `hhid` variable that can be used to join them with household data:
+```{r}
+names(hhFull)
+names(people)
+```
+Above code shows us the names of all the columns in the two datasets.
+
+The `left_join` function will automatically identify common variable names. There are other joins in `dplyr`, but `left_join` is the simplest.
+```{r}
+peopleXHH = left_join(people,hhFull) # it says: Joining, by = "hhid"
+```
+
+
+The county column stores the home county of this household.
+```{r}
+peopleXHH %>% 
+  count(County) %>% 
+  View() #This line opens a tab where 
+```
+
+This final question will test your understanding of a number of topics.
+
+##### <span style="color:red">Q3. How does mode share vary over the week? Please include your code on your answer sheet. *Group `peopleXHH` by day of the week using `group_by()` and create a `summarise()` table showing the average number of trips by the following modes on each day: Drive Alone, Passenger, Walking, and All Others (Transit). Briefly interpret the results. Remember to check the Data Dictionary if you don't know variable names. Also check Lab 4 materials if you need a reminder on how to do something like this.* (5) </span>
+
+
+
+
+
+
+
+
+
+
+

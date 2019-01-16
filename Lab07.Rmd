@@ -1,0 +1,312 @@
+---
+title: "Lab 7: CHTS Person-Level Analysis"
+author: "Written by Adam Davis and Elizabeth McBride"
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, eval = FALSE, results = FALSE, warning = FALSE, message = FALSE)
+```
+
+***
+
+##### Objectives 
+Further develop data analysis examine differences in travel behavior between various groups.
+
+***
+
+You will be submitting one .R script. 
+
+
+<span style="color:red">**NOTE:** </span> Anywhere where there is a comment and two asterisks in the instructions (`# **`), you will need to change something in some code.  
+
+
+***
+
+
+### Clean environment
+```{r}
+rm(list=ls())
+```
+
+
+
+## Startup code
+
+1. From Gauchospace, download all lab materials provided for this week. 
+2. Add the newest dataset `hh_bgDensity.Rds` to your R project `Data/` folder. 
+3. Replace your old copy of the Data Dictionary with the new one.
+
+##### <span style="color:red">Q1. *Before beginning calculations, you will examine the new data you have just downloaded.* (A) Open your Data Dictionary in a spreadsheet software and look at the sheet labeled "Data File Guide". In your own words in a couple commented sentences in your script, what is "hh_bgDensity"? You may also use today's presentation for more information to answer this question. (B) Now look at the sheet labeled "hh_bgDensity". In your own words in commented sentences in your script, what is `bg_group`? (2) </span>
+
+
+Load required libraries
+```{r}
+library(tidyverse)
+```
+
+
+#### Load and combine person / household data
+
+To access variables from other datasets, you have to join datasets together. In this class, you'll only ever need to perform left joins using the default fields. The first dataset in the join should be the most specific. In this case, PersonData is the most specific, and HHData / hh_bgDensity are less specific. For example, `left_join(PersonData, HHData)` is okay, but `left_join(HHData,PersonData)` is not.
+
+```{r}
+PersonData <- read_rds('Data/PersonData_111A.Rds')
+HHData <- read_rds('Data/HHData_111A.Rds')
+hh_bgDensity <- read_rds('Data/hh_bgDensity.Rds')
+
+personHHData <- left_join(PersonData, HHData) %>% left_join(hh_bgDensity)
+```
+NOTE: `personHHData` should have 70 variables.
+
+Run the following to see the variable names (you can look them up in the Data Dictionary)
+```{r}
+names(personHHData)
+```
+
+
+
+##### <span style="color:red">Q2. When you join household-level variables to a person-level dataset and a household has more than one person, how do the household-level variables transfer over? Answer in your own words in commented sentences in your script. Examining your newly-created `personHHData` object would be very helpful if you are uncertain. (2) </span>
+
+
+
+## One Last Concept of Grouping
+
+### Group mutate / window functions
+The `mutate` function changes slightly with grouped data. Any function that analyzes on the whole dataset instead looks at members of the group. 
+
+So whereas the following puts 94901 in every row:
+```{r}
+PersonData %>% select(hhid,pnum) %>% mutate(nObs = n())
+```
+
+The following instead puts the number of people in the person's household into each row:
+```{r}
+PersonData %>% 
+  select(hhid,pnum) %>% 
+  group_by(hhid) %>% 
+  mutate(nObs = n())
+```
+
+
+If you need to access the whole sample in grouped data, the simplest option is to ungroup it:
+```{r}
+PersonData %>% 
+  select(hhid,pnum) %>% 
+  group_by(hhid) %>% 
+  mutate(nObs = n()) %>% 
+  ungroup() %>% #removes the grouping
+  mutate(UGnObs = n())
+```
+
+
+In the following section, you will use `group_by()` and other tools to examine how various characteristics affect travel behavior. 
+
+## How do Person Characteristics Influence Travel Behavior? 
+For each of the following characteristics, you will create contingency tables and then a couple sentences of analysis of the reasons for the patterns you see in commented sentences.
+
+#### Age (class example)
+This is the example from lab discussion. You do not need to answer any questions about it.
+
+```{r}
+personHHData %>% 
+  mutate(AgeGroup=
+           case_when(
+             Age < 4 ~            "Age 00-03",
+             Age >=4 & Age < 16 ~  "Age 04-15",
+             Age >=16 & Age < 25 ~ "Age 16-24",
+             Age >=25 & Age < 35 ~ "Age 25-34",
+             Age >=35 & Age < 45 ~ "Age 35-44",
+             Age >=45 & Age < 55 ~ "Age 45-54",
+             Age >=55 & Age < 65 ~ "Age 55-64",
+             Age >=65 & Age < 75 ~ "Age 65-74",
+             Age >=75 ~            "Age 75+")) %>%
+  group_by(AgeGroup) %>%
+  summarise(number_ppl = n(),
+            meanPMT = mean(Sum_PMT), 
+            medianPMT = median(Sum_PMT),
+            meanTrips = mean(Sum_Trips),
+            medianTrips = median(Sum_Trips),
+            Miles_per_Trip = mean(Sum_PMT)/mean(Sum_Trips))
+  
+```
+Since we want to compare groups today and age is a continuous variable, this one requires you to create a categorical variable from `Age` (Note: This is not something you need to do for any of the other variables you will work with today). I use the function `case_when()` inside `mutate` to create a new variable called `AgeGroup`. I decided to make the categories under 4, 4-15 years old, 16-25 years old, then a category for every 10 years until age 75.
+
+One thing I would like you to take away from this example is how **the differences between the number of trips from category to category is much smaller than the differences between groups' PMT.** But, if you think about it, this makes sense. The scale of PMT is much larger than that of the trips. Every trip a person makes adds 1 to their value for `Sum_Trips`, while that trip could possibly add 25+ miles to their `Sum_PMT`.
+
+To look at trips and PMT simultaneously, I did the `Miles_per_Trip` calculation. I divided the mean PMT by the mean number of trips to get a value of the average miles each group traveled per trip they were making. When you look at `meanPMT` and `meanTrips`, you can see that it is just the result of dividing those two numbers together for each age category. 
+
+
+#### Sex
+For the first two groups we will examine, I will give you the code to do it, then I will have you do it yourself for the other categories.
+```{r}
+personHHData %>% 
+  group_by(Male) %>%
+  summarise(number_ppl = n(),
+            meanPMT = mean(Sum_PMT), 
+            medianPMT = median(Sum_PMT),
+            meanTrips = mean(Sum_Trips),
+            medianTrips = median(Sum_Trips),
+            Miles_per_Trip = mean(Sum_PMT)/mean(Sum_Trips))
+```
+##### <span style="color:red">Q3. (A) Describe the relationship between PMT and Trips. Does higher PMT correspond to higher number of trips for both groups? If not, what pattern do you see? (B) In a couple sentences, give your analysis for a possible reason for this pattern. *Please answer the non-code part of this question and of all the following questions in commented sentences in your script.* (1 point for above code pasted into script, 2 points each for A and B) </span>
+
+
+
+#### Driver's License for those 16 and older
+This one requires you to use `filter()` like so:
+```{r}
+personHHData %>% 
+  filter(Age>=16) %>% #now we are only analyzing respondents who are 16 or older
+  group_by(DriverLic) %>%
+  summarise(number_ppl = n(),
+            meanPMT = mean(Sum_PMT), 
+            medianPMT = median(Sum_PMT),
+            meanTrips = mean(Sum_Trips),
+            medianTrips = median(Sum_Trips),
+            Miles_per_Trip = mean(Sum_PMT)/mean(Sum_Trips))
+```
+See the 8 and 9 categories in your table? Those are people who responded with "don't know" or "refuse to answer". Since there are so few of them (see `number_ppl` column), we won't worry about those groups today. So we add another line `filter(DriverLic !=8 & DriverLic!=9)` to remove those people:
+
+```{r}
+personHHData %>% 
+  filter(Age>=16) %>% 
+  filter(DriverLic !=8 & DriverLic!=9) %>%
+  group_by(DriverLic) %>%
+  summarise(meanPMT = mean(Sum_PMT), 
+            medianPMT = median(Sum_PMT),
+            meanTrips = mean(Sum_Trips),
+            medianTrips = median(Sum_Trips),
+            Miles_per_Trip = mean(Sum_PMT)/mean(Sum_Trips))
+
+```
+
+##### <span style="color:red">Q4. Use the second table that does not contain categories 8 and 9 to answer the following: (A) What relationship do you see between having a driver's license and travel behavior? (B) In a couple sentences, give your analysis for a possible reason for this pattern. (1 point for above code pasted into script, 1 point for A, 2 points for B) </span>
+
+
+#### Disability Status
+Now you do more of it by yourself.
+
+```{r}
+personHHData %>% 
+  group_by(#**) %>% # ** Insert the variable that indicates disability status
+  summarise(number_ppl = # **,
+            meanPMT = # **, 
+            medianPMT = # **,
+            meanTrips = # **,
+            medianTrips = # **,
+            Miles_per_Trip = # **))
+
+```
+
+##### <span style="color:red">Q5. Please only analyze categories 0 and 1 for the following questions. (A) What relationship do you see between being disabled and travel behavior? (B) In a couple sentences, give your analysis for a possible reason for this pattern. (2 points for correct code, 1 point for A and 2 points for B) </span>
+
+
+#### Employment
+
+**Employed vs Unemployed Adults**
+
+This one requires `filter()`. We only want to look at adults, so grab only people over 18 years old. Use your data dictionary if you need help finding the proper employment variable for `group_by`.
+```{r}
+personHHData %>% 
+  filter(# **) %>% # ** Insert a statement to grab people over 18 years old
+  group_by(# ** ) %>% # ** Insert the variable that indicates whether or not somebody is employed
+  summarise(number_ppl =  #**,
+            meanPMT = # **, 
+            medianPMT = # **,
+            meanTrips = # **,
+            medianTrips = # **,
+            Miles_per_Trip = # **)
+```
+
+##### <span style="color:red">Q6. (A) What relationship do you see between being employed and travel behavior? (B) In a couple sentences, give your analysis for a possible reason for this pattern. (3 points for correct code, 1 point for A, 2 points for B) </span>
+
+**Workday versus Non-Workday for employed people**
+
+This one requires `filter()`
+```{r}
+personHHData %>% 
+  filter(# **) %>% # ** Insert a statement to grab only employed people
+  group_by(# ** ) %>% # ** Insert the variable that indicates whether or not it's a workday
+  summarise(number_ppl =  #**,
+            meanPMT = # **, 
+            medianPMT = # **,
+            meanTrips = # **,
+            medianTrips = # **,
+            Miles_per_Trip = # **)
+              
+```
+##### <span style="color:red">Q7. (A) What relationship do you see between workday/non-workday and travel behavior? (B) In a couple sentences, give your analysis for a possible reason for this pattern. (2 points for correct code, 1 point for A, 2 points for B)</span>
+
+
+
+## How do Household Characteristics Influence Travel Behavior?
+You will now use the same method to look at the effect of household characteristics on people's travel behavior.
+
+#### Household Income
+```{r}
+personHHData %>%
+  group_by(#**) %>% # ** Insert the household income variable
+  summarise(number_ppl =  #**,
+            meanPMT = # **, 
+            medianPMT = # **,
+            meanTrips = # **,
+            medianTrips = # **,
+            Miles_per_Trip = # **)
+
+```
+Check data dictionary for what the income category numbers stand for. Just a reminder of what you're looking at here: This will give you the mean trips of the entire group of people who live in households with a specific income level. So it's a person-level measurement. An analysis would sound like this: "people who live in a household that makes $10,000 to $24,999 travel an average of 17.7 miles in a day."
+
+##### <span style="color:red">Q8. (A) What overall relationship do you see between income and travel behavior? (B) In a couple sentences, give your analysis for a possible reason for this pattern. (2 points for correct code, 1 point for A, 2 points for B)</span>
+
+
+#### Number of Cars
+
+
+```{r}
+personHHData %>%
+  group_by(#**) %>% # ** Insert the household number of cars variable
+    summarise(number_ppl =  #**,
+            meanPMT = # **, 
+            medianPMT = # **,
+            meanTrips = # **,
+            medianTrips = # **,
+            Miles_per_Trip = # **))
+  
+```
+You might notice that group 6 does not fit the expected pattern. 6-8 do not seem to have a steady pattern. If you look at the sample size (`number_ppl`), you will see that groups 6-8 are significantly smaller than the other ones. So that probably infuences the pattern you are seeing, because outliers will have a stronger effect on the overall means and medians.
+
+##### <span style="color:red">Q9. (A) Disregarding the outlier effect on the 6-car category, what relationship do you see between income and travel behavior? (B) In a couple sentences, give your analysis for a possible reason for this pattern. (2 points for correct code, 1 point for A, 2 points for B)</span>
+
+
+#### Land Use Category (Urban-ness)
+
+```{r}
+personHHData %>%
+  group_by(bg_group) %>%
+  summarise(number_ppl =  #**,
+            meanPMT = # **, 
+            medianPMT = # **,
+            meanTrips = # **,
+            medianTrips = # **,
+            Miles_per_Trip = # **))
+              
+```
+
+The variable `bg_group` has four categories. These categories are ranked on a scale measuring how "urban" an area is. Their ranking is 1: Urban, 2: Suburban, 3: Exurban, 4: Rural.
+
+
+##### <span style="color:red">Q10. (A) What relationship do you see between land use around the home and travel behavior? (B) In a few sentences, give your analysis for a possible reason for this pattern. (1 point for correct code, 2 points each for A and B)</span>
+
+
+### Final Question:
+
+##### <span style="color:red">Q11. In commented sentences, Come up with 2 more scenarios you could analyze with the available data for which you would be curious how it would affect travel behavior or you believe it would have an effect. Don't forget you have access to the mode-by-mode number of trips/miles traveled and many sociodemographic characteristics. These can even be more complex relationships (like looking at multiple simultaneous characteristics e.g. gender and ethnicity). For each one, also provide one or two sentences describing the effect you believe you would see. (8) </span>
+
+
+
+
+
+

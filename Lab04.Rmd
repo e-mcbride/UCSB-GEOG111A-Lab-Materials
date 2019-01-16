@@ -1,0 +1,276 @@
+---
+title: 'Geog 111A Lab 4: Grouping Variables and Summary Statistics'
+author: "Adam Davis and Elizabeth McBride"
+output:
+  html_document: default
+  pdf_document: default
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, eval = FALSE, results = FALSE, warning = FALSE, message = FALSE)
+```
+
+This script will walk you grouped data and summaries in R using dplyr functions covered include summarize, group_by, and window functions.
+
+
+
+**NOTE:** Don't forget to use the built-in "Help" if you don't know what a function does (e.g. type `?mutate` to learn more about it). You can also find more information on the `dplyr` cheat-sheet linked at the beginning of the assignment.
+
+### The code and sequence of this lab is adapted from the dplyr vignettes:
+"Window functions and grouped mutate/filter" https://cran.r-project.org/web/packages/dplyr/vignettes/window-functions.html
+
+"Two-table verbs" 
+https://cran.r-project.org/web/packages/dplyr/vignettes/two-table.html
+
+
+NOTE: Please run all code in the assignment. 
+
+## Setting Up: load required packages and data
+
+**Reminder:** The Data Transformation Cheat Sheet is extremely useful to have on hand while using `dplyr`
+Found here: https://www.rstudio.com/resources/cheatsheets/
+
+
+### Clean environment
+```{r}
+rm(list=ls())
+```
+
+
+### Load packages
+```{r, eval = TRUE}
+library(tidyverse)
+```
+NOTE: if this line fails, run: `install.packages('tidyverse')`, then try to run the line above again. 
+If `install.packages('tidyverse')` fails, FIRST check for spelling errors, case-sensitivity errors, and for proper quotation mark usage. If everything appears to be correct, then you might be having an issue that a few people have reported this quarter. 
+
+As a workaround, you can install the specific `tidyverse` packages we are using today: `dplyr` and `readr` using the same `install.packages` function. Then, run `library(dplyr)` and `library(readr)`
+
+
+### Load person data
+```{r, eval = TRUE}
+peopleFull <- read_rds('Data/PersonData_111A.Rds')
+```
+This line reads in the file `PersonData_111A.Rds` dataset under the name `peopleFull`
+
+### Grab only the columns you want
+```{r, eval = TRUE}
+people <- peopleFull %>% 
+  select(hhid:persOthr,DriverLic:Employed,Student,workday,Walk_trips:Allothers_trips,Sum_Trips,Sum_PMT)
+```
+**REMINDER:** This line selects columns by name from the dataset `peopleFull`, and creates a new dataset with those columns that you name `people`. You should have 25 variables and 94,901 observations in the newly-created `people` file. Check the `Environment` box in RStudio to ensure this.
+
+##### <span style="color:red">Q1. *Before beginning calculations, you will examine some of the variables you will be using.* Open your Data Dictionary in a spreadsheet software and look at the PersonData_111A sheet. In commented sentences in your script, answer the following. (A) What is `Sum_PMT` for each person? (B) what is `Sum_Trips`? (C) What is the difference between the columns ending in `_Dist` and the columns ending in `_trips` (3) </span>
+
+# Reviewing `mutate` and `summarize`
+
+## `mutate` -- calculate new columns
+It’s often useful to **create new columns** from your dataset. In `dplyr`, we use `mutate` to do so.
+
+#### Let's calculate each respondent's average trip length
+
+**NOTE on multi-line commands** Commands can span multiple lines, as long as the lines are connected by a simple operator (`+-*/`) or a `%%` operator (e.g. `%>%` `%in%`) or are within parentheses. In the following code, we will put new lines between the two separate function calls `select` and `mutate`. **As you type the code below for yourself, notice that Rstudio even automatically indents when you press "enter" within an unfinished command.**
+
+```{r}
+people %>% 
+  select(hhid, pnum, Sum_PMT, Sum_Trips) %>% # Select a small subset of only columns we need
+  mutate(mean_TrpLength = Sum_PMT / Sum_Trips) # Divides miles traveled by total trips
+```
+
+<span style="color:red">  Before moving on, **make sure you understand how the calculation above worked.** Look at the console output from the code above. Compare the rowwise values of `Sum_PMT` and `Sum_Trips` to the `mean_TrpLength` column you created. (not a question for points). </span>
+
+
+
+#### You can use variables created in a `mutate` call within the same call
+
+**NOTE 2 on multi-line commands:** In the following code, we will put new lines between separate function calls, and a new line *within* the `mutate` function call after commas. You can use `Ctrl+Enter`/`Command+Enter` on any line within a command and it will run the the entirety of the command. When you run the command below, try doing so with your cursor on the last line. 
+
+```{r}
+people %>% 
+  select(hhid, pnum, Sum_PMT, Sum_Trips) %>%
+  mutate(mean_TrpLength = Sum_PMT / Sum_Trips,
+         half_mean = mean_TrpLength / 2) 
+```
+Notice that within the same `mutate` function call, we created `mean_TrpLength`, then used `mean_TrpLength` to calculate another column `half_mean`. **Before moving on, examine your console output and compare the values of `mean_TrpLength` to those of `half_mean` and  make sure you understand the code you just ran.**  If you do not see `mean_TrpLength` column, check for this in the console: `... and 1 more variable`. If you see that, just make your Rstudio window or the console panel wider so more text can fit, then run again.
+
+
+
+### Storing as an object
+Notice that as you run these commands, nothing in your `Environment` panel has permanently changed. The objects `people` and `peopleFull` are still the same as when you created them. If you want to store your results, remember you need to name them with `<-`
+
+```{r}
+
+ppl_means <- people %>% 
+  select(hhid, pnum, Sum_PMT, Sum_Trips) %>%
+  mutate(
+         mean_TrpLength = Sum_PMT / (Sum_Trips + 0.000001), #adding a very tiny value to Sum_Trips (not usually recommended!!)
+         half_mean = mean_TrpLength / 2)
+```
+Doing what I did above (adding a tiny value to `Sum_Trips` to avoid dividing by zero) is usually not recommended. But this is just for pedagogical purposes so we can use the variables as they are.
+
+##### <span style="color:red">Q2. Use `mutate` to calculate a new column called `car_trips` with respondents' **total trips by car**, including driving alone, driving others, and as a passenger. Store your new dataset as an object named `ppl_cartrips`. *(Start with the `people` dataset, `select` the columns you need, then `mutate` to create the new column. Check the Data Dictionary for column names)* (6)</span>
+
+
+# `summarize` / `summarise` -- calculate aggregate statistics from data
+To learn about the **overall** characteristics of your dataset, use the `summarize` (or `summarise`) command, which **condenses your data into a single row**.
+
+<span style="color:red">Run the following, and make sure you understand what each command did before moving on to the next.</span>
+
+Average age of respondents:
+```{r}
+people %>% summarize(meanAge = mean(Age))
+```
+
+
+Average age, distance, number of trips, and trip length:
+```{r}
+people %>% summarize(meanAge = mean(Age),
+                     meanPMT = mean(Sum_PMT),
+                     meanTrips = mean(Sum_Trips),
+                     meanLength = meanPMT / meanTrips)
+```
+
+Maximum PMT and trips:
+```{r}
+people %>% summarize(maxPMT = max(Sum_PMT),
+                     maxTrips = max(Sum_Trips))
+```
+
+Notice how you can list multiple arguments separated with a comma when you want more than one summarization.
+
+## Using summary functions in `mutate`:
+Summary functions can also be used to create new variables using `mutate`. For example, below we use `mean()` within `mutate` to subtract the **overall mean** from every person's PMT.
+
+To get difference betweem a person's PMT and the mean PMT in the sample:
+```{r}
+people %>% select(hhid,pnum, Sum_PMT) %>% 
+  mutate(PMTdif = Sum_PMT - mean(Sum_PMT))
+```
+
+
+Just to make sure, this value should have mean 0:
+```{r}
+people %>% select(hhid,pnum,Sum_PMT) %>% 
+  mutate(PMTdif = Sum_PMT - mean(Sum_PMT)) %>%
+  summarise(mean(PMTdif))
+```
+
+Remember the `ppl_means` dataset we created earlier? Let's get the overall mean for `mean_TrpLength` and `half_mean`. We should see that the overall value of HalfTrpLength is half of the overall value of TrpLength.
+```{r}
+ppl_means # run this for a reminder of what's in this object
+
+ppl_means %>% 
+  summarise(TrpLength = mean(mean_TrpLength),
+            HalfTrpLength = mean(half_mean))
+  
+```
+Which we do! Now we know that in our sample, the overall average single-trip length is 8.5 miles.  
+
+
+##### <span style="color:red">Q3. Use `summarise` to calculate the overall average number of trips made by car. Please include your code and a comment with the numeric answer. *(You should use the object `ppl_cartrips` created in Q2)* (3) </span>
+
+
+# Grouped Data
+Many datasets contain multiple observations that are related to each other. For instance, you may have multiple observations from a certain town or from a certain group of interest. Really, any categorical variable can be used for grouping if it provides an interesting comparison.
+
+In this dataset, variables can potentially be grouped by household id, various social, demographic, and economic variables, weekday, and access to modes.
+
+
+### Counting potential groups
+`dplyr` makes it easy to find out how many people have any value of a variable or set of variables.
+
+```{r}
+people %>% count(Male)
+people %>% count(Employed,Student) # How many people have each combination of employment and student status
+```
+
+
+##### <span style="color:red">Q4. (A) How many respondents identify as male, and how many do *not* identify as male? (B) How many respondents are employed AND a student? *(Remember to check the Data Dictionary for descriptions of the variables and their values.)* (2) </span>
+
+
+
+The tidyr package can change this to a conventional x-tab format. (No need to run this yourself. You are not required to use this in your responses this week:)
+```{r, eval=TRUE, results=TRUE}
+people %>% count(Employed,Student) %>% tidyr::spread(Employed,n) %>%
+  rename(notEmployed = `0`, Employed = `1`, NAEmployed = `<NA>`)
+```
+More on `tidyr::spread` on a later date. *(If you do run this, remember if you did not successfully install and load the `tidyverse` library, you will need to install `tidyr` and load the library separately.)*
+
+
+## `group_by` -- Defining Groups for a dataset
+`dplyr` interprets grouped data differently from ungrouped data, but first you have to define grouping, using the `group_by` function.
+
+
+```{r}
+people %>% group_by(Male)
+```
+Note `Groups:   Male [2]` written at the top of the console output. It names the grouping variable and has the total # of groups in brackets. In this case, one variable (Male) and 2 groups.
+
+### Grouping using logical operators
+```{r}
+people %>% group_by(Sum_PMT < 10 | Sum_PMT > 20) %>% summarise(How_Many = n())
+```
+This creates two groups from the Person Miles Traveled (PMT) variable. The `TRUE` group contains people who traveled less than 10 miles on their travel diary day, OR traveled more than 20 miles on their diary day. The `FALSE` group contains everyone else (i.e., those who traveled between 10 miles and 20 miles). 
+
+##### <span style="color:red">Q5. Use `group_by` and `summarise` to find out how many people are between age 25 and 65 (including those that are 25 and 65). How many people are outside of that age range? Show your code and include your numeric answers as comments  (3) </span>
+
+### You can also stack **groups across multiple variables**
+
+```{r}
+people %>% group_by(Male, Employed) # two variables, six groups
+```
+Why did grouping two binary variables produce six groups? We will find out in the following section.
+
+
+## Group summaries -- using `group_by` and `summarize` together
+One major use of grouping is to **investigate the differences between groups.**
+
+`dplyr::summarize` is used the same way for groups as for the whole dataset, but instead of providing a one-line answer, it provides one line for each group.
+
+
+**NOTE:** summarizing a grouped dataset removes the lowest layer of grouping, so:  
+`dataset %>% group_by(A,B) %>% summarize(count=n())`  
+would produce a summary dataset still grouped by `A`, with each unique combo of variables `A` and `B` occupying one row.
+
+
+Back to the question from earlier (Why did grouping two binary variables produce six groups?) Turns out there are some NA's in the Employed variable:
+```{r}
+people %>% group_by(Male, Employed) %>% summarise(How_Many = n())
+```
+
+
+The 6 groups:
+
+* not male & not employed
+* not male & employed
+* not male & NA (not yet 16)
+* male & not employed
+* male & employed
+* male & NA (not yet 16)
+
+
+##### <span style="color:red">Q6. (A) Look up the help page for `n()`, and describe what `n()` returns in one sentence (your own words). (B) Based on this information, in one sentence, describe what the `How_Many` column we created contains. (2) </span>
+
+
+##### <span style="color:red">Q7. Use `group_by` and `summarise` to find out how many people identify as hispanic and white, and how many identify as hispanic and non-white. Show the code you used and give your numeric answers in a comment. *(Hint: find out which columns you need in the data dictionary)* (5) </span>
+
+**NOTE:** order often matters for multi-variable `group_by`! The highest level of grouping should go at the top (or the one you want in your final output). It doesn't matter in the examples today, but it will matter later.
+
+
+**Comparing (non-statistically) trip counts between work/nonwork days for employed people:**
+```{r}
+people %>% filter(Employed == 1) %>% 
+  group_by(workday) %>%
+  summarise(nPeople=n(), meanTrips = mean(Sum_Trips))
+```
+Above, we first used `filter` to grab only survey respondents who are employed. 
+
+##### <span style="color:red"> Q8. (A) Add an argument to the `summarise` function above to additionally calculate the mean PMT for workdays versus non-workdays. Show your code. (B) Interpret your results in a couple commented sentences. How do workers' travel behaviors differ on workdays vs. non-workdays? (3) <span>
+
+
+#### Combining What you Learned: 
+
+##### <span style="color:red">Q9. Do people in their prime work years (between ages 25 and 65) travel more miles than and make more trips than people of other ages? Or are their travel patterns indistinguishable from the travel patterns of other age groups? Please include your code on your answer sheet. *Group by this age category and compare the mean of Person Miles Traveled for this age group with the mean of the rest of the sample. Do the same thing for Number of Trips. Include everyone, not just employed people. In a couple commented sentences, interpret the results.* (5) </span>
+
