@@ -1,0 +1,383 @@
+---
+title: 'Lab 9 Part 2: Mapping and Final Report Materials'
+author: "Adam Davis and Elizabeth McBride"
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, eval = FALSE, results = FALSE, warning = FALSE, message = FALSE)
+```
+
+***
+
+Find Lab 9 Part 1 on GauchoSpace.
+
+***
+
+##### Clean environment
+```{r}
+rm(list=ls())
+```
+
+##### Load packages
+```{r}
+library(tidyverse)
+```
+
+
+
+#### Load and combine person / household data
+
+```{r}
+PersonData <- read_rds('Data/PersonData_111A.Rds')
+HHData <- read_rds('Data/HHData_111A.Rds')
+hh_bgDensity <- read_rds('Data/hh_bgDensity.Rds')
+
+personHHData <- left_join(PersonData, HHData) %>%
+  left_join(hh_bgDensity)
+```
+
+
+### Creating a new folder in the R project
+You will be creating a new folder to place your output images and tables in so you can access them for your final report.
+
+1. Open the R project folder in file explorer (Windows) / finder (Mac)
+2. Create a new folder in the main R project folder and name it "Output". It should be alongside your other folders "Data" and "Spatial"
+
+We will be saving any output images to this "Output" folder for easy access later. 
+
+### Mapping differences among residential locations (urban, suburban, exurban, rural)
+
+
+```{r}
+library(sf)
+library(mapview)
+```
+
+
+```{r}
+counties_shp <- st_read("Spatial/counties.shp")
+```
+
+
+The goal this time is to build 4 maps: one each for every residential location type. In all four we will be looking at the same characteristic. We will eventually be using the function `latticeview` from the `mapview` package to do so. However, first we need to prepare our data. 
+
+The first step is to divide up the data we have into 4 parts based on their bg_group using `filter()`. Then, we apply the same set of calculations we did to create `prhh_aggreg` in Part 1.
+```{r}
+urban_data <- personHHData %>% 
+  filter(bg_group == "Urban") 
+
+urban_ppl_pr_county <- urban_data %>%
+  group_by(CTFIP, County) %>% #added County to this so we can see the county names
+  summarise(n_ppl=n())
+
+urban_aggreg <- urban_data %>% 
+  mutate(Sum_VMT = DriveAlone_Dist + Driveothers_Dist +Passenger_Dist) %>%
+  select(hhid, pnum, CTFIP, County, bg_group,Sum_Trips, Sum_PMT, Sum_VMT, bornUSA, starts_with("pers")) %>%
+  group_by(CTFIP) %>%
+  summarise_at(vars(-hhid, -pnum, -County, -bg_group, -CTFIP), funs(mean))%>%
+  left_join(urban_ppl_pr_county)
+```
+
+
+```{r}
+urban_shp <- counties_shp %>% left_join(urban_aggreg)
+```
+
+Once you have your shapefile and you have checked it to make sure it looks like it should, you can remove the unnecessary objects from your Environment if it is feeling cluttered with `rm()`:
+```{r}
+rm(urban_data, urban_ppl_pr_county, urban_aggreg)
+```
+
+
+```{r}
+suburb_data <- personHHData %>% 
+  filter(bg_group == "Suburban") 
+
+suburb_ppl_pr_county <- suburb_data %>%
+  group_by(CTFIP, County) %>% #added County to this so we can see the county names
+  summarise(n_ppl=n())
+
+suburb_aggreg <- suburb_data %>% 
+  mutate(Sum_VMT = DriveAlone_Dist + Driveothers_Dist +Passenger_Dist) %>%
+  select(hhid, pnum, CTFIP, County, bg_group,Sum_Trips, Sum_PMT, Sum_VMT, bornUSA, starts_with("pers")) %>%
+  group_by(CTFIP) %>%
+  summarise_at(vars(-hhid, -pnum, -County, -bg_group, -CTFIP), funs(mean))%>%
+  left_join(suburb_ppl_pr_county)
+```
+
+```{r}
+suburb_shp <- counties_shp %>% left_join(suburb_aggreg)
+```
+
+Removing unneeded datasets:
+```{r}
+rm(suburb_data, suburb_ppl_pr_county, suburb_aggreg)
+```
+
+#### <span style="color:red">Q3. To create your exurban shapefile, change the code below accordingly in the blanks where there are comments and two asterisks in the instructions (`# **`). Include and run all the final code. *Tip: Refer to the method used for the urban and suburban shapefiles* (2) </span>
+
+```{r}
+exurb_data <- personHHData %>% 
+  filter(bg_group == "Exurban")
+
+exurb_ppl_pr_county <- # ** %>% # ** Insert the name of the exurb dataset
+  group_by(CTFIP, County) %>%
+  summarise(n_ppl=n())
+
+exurb_aggreg <- # ** %>% # ** Insert the name of the exurb dataset
+  mutate(Sum_VMT = DriveAlone_Dist + Driveothers_Dist +Passenger_Dist) %>%
+  select(hhid, pnum, CTFIP, County, bg_group,Sum_Trips, Sum_PMT, Sum_VMT, bornUSA, starts_with("pers")) %>%
+  group_by(CTFIP) %>%
+  summarise_at(vars(-hhid, -pnum, -County, -bg_group, -CTFIP), funs(mean))%>%
+  left_join(# **) # ** Insert the name of the exurb people per county dataset
+```
+
+```{r}
+exurb_shp <- counties_shp %>% left_join(# **) # ** Insert the name of the aggregate exurb dataset
+```
+
+
+Removing unneeded datasets:
+```{r}
+rm(exurb_data, exurb_ppl_pr_county, exurb_aggreg)
+```
+
+
+
+#### <span style="color:red">Q4. To create your rural shapefile, change the code accordingly in the blanks where there are comments and two asterisks in the instructions (`# **`). Include and run all the final code. (2) </span>
+
+```{r}
+rural_data <- personHHData %>% 
+  filter(bg_group == "Rural") 
+
+rural_ppl_pr_county <- # ** %>% # ** Insert the name of the rural dataset
+  group_by(CTFIP, County) %>%
+  summarise(n_ppl=n())
+
+rural_aggreg <- # ** %>% # ** Insert the name of the rural dataset
+  mutate(Sum_VMT = DriveAlone_Dist + Driveothers_Dist +Passenger_Dist) %>%
+  select(hhid, pnum, CTFIP, County, bg_group,Sum_Trips, Sum_PMT, Sum_VMT, bornUSA, starts_with("pers")) %>%
+  group_by(CTFIP) %>%
+  summarise_at(vars(-hhid, -pnum, -County, -bg_group, -CTFIP), funs(mean))%>%
+  left_join(# **) # ** Insert the name of the rural people per county dataset
+```
+
+```{r}
+rural_shp <- counties_shp %>% left_join(# **) # ** Insert the name of the aggregate rural dataset
+```
+
+Removing unneeded datasets:
+```{r}
+rm(rural_data, rural_ppl_pr_county, rural_aggreg)
+```
+
+
+#### Using `mapview()`
+Next, we will store the 4 maps as objects. Instead of just running `mapview()` like we did in Part 1, we will now be giving these maps names.
+```{r}
+urban_TripMap <- mapview(urban_shp, zcol = "Sum_Trips", 
+                     legend = TRUE, layer.name = "Urban Trips")
+
+suburb_TripMap <- mapview(suburb_shp, zcol = "Sum_Trips", 
+                      legend = TRUE, layer.name = "Suburban Trips")
+
+exurb_TripMap <- mapview(exurb_shp, zcol = "Sum_Trips", 
+                     legend = TRUE, layer.name = "Exurban Trips")
+
+rural_TripMap <- mapview(rural_shp, zcol = "Sum_Trips", 
+                     legend = TRUE, layer.name = "Rural Trips")
+```
+
+```{r}
+latticeview(urban_TripMap, suburb_TripMap, exurb_TripMap, rural_TripMap, sync = "all")
+```
+In the panel where the maps show up, click the "Show in new window" button to the right of the broom to get a full view of the set of maps. 
+
+Notice that some counties have "NA" value and are greyed out. This is because there was nobody surveyed from that county that lived in an area of that type. As an example, you might notice the more rural counties are more likely to have nobody surveyed who lived in an area considered "urban".
+
+
+We will now do the same set of maps for `Sum_PMT`
+```{r}
+urban_PMTMap <- mapview(urban_shp, zcol = "Sum_PMT", 
+                     legend = TRUE, layer.name = "Urban PMT")
+
+suburb_PMTMap <- mapview(suburb_shp, zcol = "Sum_PMT", 
+                      legend = TRUE, layer.name = "Suburban PMT")
+
+exurb_PMTMap <- mapview(exurb_shp, zcol = "Sum_PMT", 
+                     legend = TRUE, layer.name = "Exurban PMT")
+
+rural_PMTMap <- mapview(rural_shp, zcol = "Sum_PMT", 
+                     legend = TRUE, layer.name = "Rural PMT")
+```
+
+```{r}
+latticeview(urban_PMTMap, suburb_PMTMap, exurb_PMTMap, rural_PMTMap, sync = "all")
+```
+
+**TIP FOR YOUR FINAL REPORT:** The best way to save these 4-panel maps for your final report is to just take a screenshot of each one. Make sure you caption them appropriately so readers can tell the two apart!
+
+##### <span style="color:red">Q5. In commented sentences, write a few sentences of description of your observations about these two sets of maps (Sum_PMT and Sum_Trips for urban/suburban/exurban/rural respondents). The description you write here can also be reused in your final report. (3) </span>
+
+
+
+## Final Report
+The following will show you code for the final report.
+
+
+### Final Report Section 1 - Descriptive statistics of PERSON behavioral indicators
+
+First, we will extract the necessary characteristics into a new smaller dataset named `final_person`
+```{r}
+final_person <- PersonData %>% 
+  # Creating new variables:
+  mutate(Sum_VMT = DriveAlone_Dist + Driveothers_Dist +Passenger_Dist,
+         ZeroTravel = as.numeric(Sum_Trips == 0)) %>% #creates a TRUE/FALSE that we turn into 1/0 with as.numeric
+    select(hhid, pnum, Sum_Trips, Sum_PMT, Sum_VMT,
+         ends_with("trips"), #for "mode used"
+         ZeroTravel, Age, Male, Employed)
+
+```
+
+
+
+#### Minimum, maximum, mean, median, standard deviation, histogram
+To make these descriptive statistics, you will be installing a new package called `summarytools`
+```{r}
+install.packages("summarytools")
+library(summarytools)
+```
+
+
+The `summarytools` "data frame summary table" will provide you with all of the following Below, we will do it for the person characteristics
+
+For a first view:
+```{r}
+final_person %>%
+  select(-hhid, -pnum) %>%
+  dfSummary(varnumbers = FALSE, valid.col = FALSE, na.col = FALSE, graph.magnif = 1.5) %>%
+  view(method = "browser")
+```
+For more info on `dfSummary()` and `view()` and the arguments we used in those functions, check out their built-in `help()` pages. 
+
+#### Saving the table so we can access it later
+This package does not let us write files as easily as past ones we have used, so we need to use a small trick to make it work. 
+The function `getwd()` will print the path to the current working directory as a string. The working directory is the directory where you have been reading files from and writing them to this quarter. It should be your R project folder. Run the following and make sure the path leads to your R project folder:
+```{r}
+getwd()
+```
+
+We will use the function `paste0()` to stick together two strings: the current working directory from `getwd()` and the rest of the path to get to our Output folder. See what it will look like below:
+```{r}
+paste0(getwd(), "/Output/newfile.html")
+```
+(For more info on `paste0`, you can look at the built-in `help` page)
+
+The result of the above code should be a string (surrounded by quotes) with the full path to get to the Output folder in your R project, and to reference an .html file called `newfile.html` that actually does not exist. We can use a string like the one created above to **write** a file. This is what we will now do with our summary table:
+
+```{r}
+final_person %>%
+  select(-hhid, -pnum) %>%
+  dfSummary(varnumbers = FALSE, valid.col = FALSE, na.col = FALSE, graph.magnif = 1.5) %>% 
+  view(file = paste0(getwd(), "/Output/person_dfsummary.html")) #writes to file
+```
+By adding the path with a name for our new file to `view()`, we have written our .html table file to our Output folder under the name `person_dfsummary.html`. 
+
+**NOTE FOR FINAL:** The simplest way to insert the resultant tables into your final report is to open it with the default program (probably your browser), highlight all the table materials, then copy/paste into your Word document. You can then adjust formatting accordingly.
+
+#### Boxplots
+
+For the final report, you will need to build a boxplot for all **continuous** variables listed, except for the divided-by-mode travel (e.g. `Bike_trips`, `Walk_trips`, `DriveAlone_trips`, etc). Just use the basic `boxplot()` function and don't worry about using `ggplot2`. Make sure you give each one an **appropriate title** so they are distinguishable. Below is an example:
+```{r}
+boxplot(final_person$Sum_Trips, main = "Total Trips per Person")
+```
+You do not need to do boxplots for the binary variables (like `Male`, `Employed`, and `ZeroTravel`).
+
+
+If you want to save it with code instead of clicking the "Export" button in the Plots pane, do the following:
+```{r}
+png(filename=paste0(getwd(),"/Output/pr_SumTrips_boxplot.png"))
+boxplot(final_person$Sum_Trips, main = "Total Trips per Person")
+dev.off()
+```
+Now if you check your "Output" folder, you should see your new boxplot image.
+
+
+### Final Report Section 2 - Descriptive statistics of HOUSEHOLD behavioral indicators
+
+We will aggregate some variables to the household level from the person data:
+```{r}
+aggregate2HH <- final_person %>%
+  mutate(child = Age<18) %>%
+  group_by(hhid) %>%
+  summarise_at(vars(Sum_PMT, Sum_VMT, ends_with("trips"), HH_nChildren = child), sum) %>%
+  rename_at(vars(Sum_PMT, Sum_VMT, ends_with("trips")),
+            funs(paste0("HH_",.))) #renaming them to show they are HH-level variables
+
+
+```
+
+We will now build a couple new variables using `mutate`, join the aggregate characteristics from `aggregate2HH`, then select the final variables
+```{r}
+final_hh <- HHData %>% 
+  # Creating new variables:
+  mutate(HHZeroTravel = as.numeric(HH_nTrips == 0)) %>% #creates a TRUE/FALSE that we turn into 1/0 with as.numeric
+  left_join(aggregate2HH) %>%
+    select(hhid, HH_nTrips, HH_Sum_PMT, HH_Sum_VMT,
+         ends_with("trips"), #for "mode used"
+         HHZeroTravel, HH_size, HH_nCars, HH_nChildren)
+```
+
+
+#### Minimum, maximum, mean, median, standard deviation, histogram
+We will use the same `summarytools` data frame summary table. This time, you will be creating the table on your own for points in Lab 9. Use the same method as we used in Section 1.
+
+##### <span style="color:red">Q6. Use `dfSummary` from `summarytools` to create a summary table of the household variables in `final_hh`. Make sure to exclude `hhid`. Also make sure to save a copy of the table in your Output folder. This is transferable to your final report. *Tip: Refer to Final Report Section 1 for how to do this.* (5) </span>
+
+### Final Report Section 3 - Correlations and Graphics of traits
+
+#### Correlations
+```{r}
+pr_cor <- final_person %>% select(ends_with("trips"), ZeroTravel, Sum_PMT, Sum_VMT, Age, Male, Employed, -Sum_Trips) %>% cor()
+
+hh_cor <- final_hh %>% select(ends_with("trips"), HHZeroTravel, HH_Sum_PMT, HH_Sum_VMT, HH_size, HH_nCars, HH_nChildren) %>% cor()
+
+```
+
+##### <span style="color:red">Q7. (A) In a few commented sentences in your code, describe/analyze the person correlation matrix `pr_cor`. (B) Do the same for the household correlation matrix `hh_cor`. These responses are also transferable to your final report. (6) </span>
+
+
+#### Cross-tabulations
+Cross-tabulations compare the distributions of two **categorical** variables (so you would not want to use continuous variable in a cross-tab). Here is an example of a cross-tabulation using `ctable` from `summarytools`:
+```{r}
+ctable(final_person$ZeroTravel, final_person$Employed)
+```
+Look up the built-in `help()` page for `ctable()` for more info on the inputs to the function.
+
+If you want to build a categorical variable from a continuous one to look at it, you can do so with `mutate` befoe doing the crosstab. Remember in Lab 7 when we created that age group variable in an example? We will use that code below to make a categorical age variable called `AgeGroup`. We store the updated dataset it in the Environment under the name `final_person_categ` to access these new categorical variables *and* all our old variables in the `ctable` function)
+```{r}
+final_person_categ <- final_person %>% 
+  mutate(
+  AgeGroup = case_when(
+    Age < 4 ~            "Age 00-03",
+    Age >=4 & Age < 16 ~  "Age 04-15",
+    Age >=16 & Age < 25 ~ "Age 16-24",
+    Age >=25 & Age < 35 ~ "Age 25-34",
+    Age >=35 & Age < 45 ~ "Age 35-44",
+    Age >=45 & Age < 55 ~ "Age 45-54",
+    Age >=55 & Age < 65 ~ "Age 55-64",
+    Age >=65 & Age < 75 ~ "Age 65-74",
+    Age >=75 ~            "Age 75+"))
+```
+If you want to do something like this for your final, look up `case_when` in `help()`. You can add new arguments to the `mutate` function above to build new cateorical variables that fit what you want to look at. You can also use the age categories we just made above.
+
+So to use this new variable, we access the `final_person_categ` dataset:
+```{r}
+ctable(final_person_categ$AgeGroup, final_person_categ$Employed)
+```
+Notice how the two variables AgeGroup and Employed are definitely related. The percentage of the sample that is employed gets higher further into the "working years", then decreases as respondents are entering "retirement age".
+
+##### <span style="color:red">Q8. For your final report, you will need to provide a couple interesting cross-tabs. (A) Provide the code to create one here that you would like to use in your final report. (B) Please also provide a couple commented sentences of discusion (transferable to your final report). (4) </span>

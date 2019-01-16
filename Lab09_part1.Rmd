@@ -1,0 +1,142 @@
+---
+title: 'Lab 9 Part 1: Mapping of Traits'
+author: "Adam Davis and Elizabeth McBride"
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, eval = FALSE, results = FALSE, warning = FALSE, message = FALSE)
+```
+
+***
+Please read all materials in labs and run all code! TIP: Don't just run the example code in the labs. **Inspect the results you get**, and see how they relate to the text around them.
+
+Some of today's lab was adapted from:
+https://cran.r-project.org/web/packages/sf/vignettes/sf1.html
+***
+
+##### Clean environment
+```{r}
+rm(list=ls())
+```
+
+##### Load packages
+```{r}
+library(tidyverse)
+```
+
+
+
+#### Load and combine person / household data
+
+```{r}
+PersonData <- read_rds('Data/PersonData_111A.Rds')
+HHData <- read_rds('Data/HHData_111A.Rds')
+hh_bgDensity <- read_rds('Data/hh_bgDensity.Rds')
+
+personHHData <- left_join(PersonData, HHData) %>%
+  left_join(hh_bgDensity)
+```
+
+
+#### Spatial data
+
+You will be installing a new package today: the `sf` package. This is a package for working with spatial data.
+
+```{r}
+install.packages("sf")
+library(sf)
+```
+
+
+You will be adding new data to your project today: a shapefile for making maps!
+
+1. Go to Gauchospace and download the newest data
+2. Add this set of files to a new folder in your project named "Spatial". The data will already be within a folder of this name, so you can 
+3. Once you have added it, continue with the instructions below
+
+
+All of the `sf` functions for dealing with spatial data start with `st_`. To read our new shapefile into R, we will use `st_read()`
+
+```{r}
+counties_shp <- st_read("Spatial/counties.shp")
+```
+
+First quick plot. The unique colors correspond to the unique names of each county:
+```{r}
+plot(counties_shp["NAME"])
+```
+
+
+
+### Aggregating CHTS Traits to County Level and Joining them to our Shapefile
+
+We will now be taking some of the CHTS person and household characteristics and aggregating them to the county level so we can map the traits of our CHTS respondents county-by-county.
+
+To start off, let's get the total count of how many people in our survey come from the various counties of California:
+```{r}
+ppl_pr_county <- personHHData %>% 
+  group_by(CTFIP, County) %>% #added County to this so we can see the county names
+  summarise(n_ppl=n())
+
+
+View(ppl_pr_county)
+```
+You will notice that the number of people surveyed from each CA county varies greatly. Of course, some counties have higher populations than others so we would expect to survey more people from those counties. However, it does mean we should not just use sums when we are aggregating CHTS characteristics to the county level. For that reason, we will be getting **means**.
+
+Below, we get the county-by-county means of all the variables of interest. I also made a new variable named `Sum_VMT` that calculates the total VMT made by each person. Taking the means instead of just getting sums accounts for the fact that there are not even numbers of people surveyed from each county. We also join `ppl_pr_county` to this dataset so we can carry over the counts of how many people were surveyed from each county.
+```{r}
+prhh_aggreg <- personHHData %>% 
+  mutate(Sum_VMT = DriveAlone_Dist + Driveothers_Dist +Passenger_Dist) %>%
+  select(hhid, pnum, CTFIP, County, bg_group,Sum_Trips, Sum_PMT, Sum_VMT, bornUSA, starts_with("pers")) %>%
+  group_by(CTFIP) %>%
+  summarise_at(vars(-hhid, -pnum, -County, -bg_group, -CTFIP), funs(mean)) %>%
+  left_join(ppl_pr_county) 
+
+View(prhh_aggreg)
+```
+Interesting fact: For the variables where responses are a 1 or 0 (like bornUSA, or any of the variables that start with "pers"), taking the mean gives us the ratio of people who answered "yes" (aka 1) to a given question.
+
+Interesting fact side note: You will notice in the Data Dictionary that there are not only 0 or 1 as possible responses. There are also 8 or 9 for DK ("don't know") and RF ("refused to answer") respectively. Theoretically, these could mess with our means. However I checked whether excluding these DK/RF answers was necessary or changed the means and it made a minimal difference, so we won't worry about it and just leave those responses in the calculations.
+
+While you are looking at the table you have created, you will also see the `CTFIP` variable. This is the county ID number. This same ID number is present in our shapefile `counties_shp`. That means we can use it to join these two datasets together. A great benefit of `sf` is its ability to work easily within the `tidyverse`. We can simply join the two datsets together using `left_join()` like we have done in the past:
+```{r}
+county_prhh_shp <- counties_shp %>% left_join(prhh_aggreg)
+```
+It knows what to do, and the newly-created `county_prhh_shp` is also an `sf` object. That means it has spatial attributes and can be mapped.
+
+### Interactive Maps of Traits
+`mapview` is great for making quick interactive maps
+```{r}
+install.packages("mapview") # only need to run this once per new computer you are using
+library(mapview)
+```
+
+We will start off with a map of the percentage of CHTS respondents born in the USA per county
+```{r}
+mapview(county_prhh_shp, 
+        zcol = "bornUSA", #tells it which column to map
+        legend=TRUE, #if FALSE, it won't show the legend 
+        label= county_prhh_shp$NAME, #tells it the column whose value you want to appear when you hover over a shape with your mouse
+        popup = popupTable(x = county_prhh_shp, zcol = c("bornUSA", "n_ppl"))  #determines what is included in the popup window when you click on a shape
+        )
+```
+Notice that the percentage of respondents who were born in the USA increases as you look at more northern counties. However, also notice that more urban counties have lower percentages, regardless of their position in the state. 
+
+* Try hovering your mouse over different counties. See how the name of the county pops up? We determined that behavior with the `label` argument. The column `NAME` contains the county names. We could change `NAME` there to any column name present in `county_prhh_shp`, and when we re-run `mapview` it will show that column's value for each county when you hover your mouse over it.
+
+
+* Try clicking on a county and look at the table that pops up. That table was created in the `popup` argument. Notice the table contains `NAME`, `bornUSA`, `n_ppl`, and `geometry`. If you look back at the `mapview` code, you will see that we listed out those variable names (besides `geometry` which is automatically inserted) in quotes in `popupTable()` in the `zcol = c(...)` argument. If you want your popup table to have different information about your county, **change the listed column names there.** You will need to use quotations around the column names in this case.
+
+
+
+##### <span style="color:red">Q1. Using `mapview`, make a new map of the same `bornUSA` variable, but ~~change the `label` column from `NAME` to `bornUSA`~~ remove the the `label` argument. This will make the `bornUSA` count appear when you hover your mouse. Also, add the `NAME` column to the `popup` so it shows the name of the county in the popup table. Include your code so I can run it to reproduce your map. (3) </span>
+
+**NOTE:** If you already finished Q1 before instructions update (adding `bornUSA` as `label` argument), leave it as is! It is okay if you don't see the number when you hover your mouse over it.
+
+##### <span style="color:red">Q2. Use `mapview` to make an interactive map of a travel behavior trait like number of trips, PMT, or VMT. Adjust `label` and `popup` so they go well with the trait you are mapping. Include your code so I can run it to reproduce your map. Also explain in a few commented sentences the trait you chose to map and the feature(s) you chose to include in your `label` and `popup`. (5) </span>
+
+
+
