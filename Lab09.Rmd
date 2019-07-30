@@ -1,0 +1,119 @@
+---
+title: 'Lab 9: Mapping of Traits'
+author: "Adam Davis and Elizabeth McBride"
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, eval = FALSE, results = FALSE, warning = FALSE, message = FALSE)
+```
+
+***
+Please read all materials in labs and run all code! TIP: Don't just run the example code in the labs. **Inspect the results you get**, and see how they relate to the text around them.
+
+Some of today's lab was adapted from:
+https://cran.r-project.org/web/packages/sf/vignettes/sf1.html
+***
+
+##### Clean environment
+```{r}
+rm(list=ls())
+```
+
+##### Load packages
+```{r}
+library(tidyverse)
+```
+
+
+
+#### Load and combine person / household data
+
+```{r}
+PersonData <- read_rds('Data/PersonData_111A.Rds')
+HHData <- read_rds('Data/HHData_111A.Rds')
+hh_bgDensity <- read_rds('Data/hh_bgDensity.Rds')
+
+personHHData <- left_join(PersonData, HHData) %>%
+  left_join(hh_bgDensity)
+```
+
+
+#### Spatial data
+
+You will be installing a new package today: the `sf` package. This is a package for working with spatial data.
+
+```{r}
+install.packages("sf")
+library(sf)
+```
+
+
+You will be adding new data to your project today: a shapefile for making maps!
+
+1. Go to Gauchospace and download the newest data
+2. Add this set of files to a new folder in your project named "Spatial". The data will already be within a folder of this name, so you can 
+3. Once you have added it, continue with the instructions below
+
+
+
+All of the `sf` functions for dealing with spatial data start with `st_`. To read our new shapefile into R, we will use `st_read()`
+```{r}
+counties_shp_dat <- st_read("Spatial/CA_counties.shp")
+
+counties_shp <- counties_shp_dat %>% 
+  rename(CTFIP = GEOID) %>%
+  mutate(CTFIP = CTFIP %>% as.character%>%as.numeric)
+
+
+
+st_write(counties_shp, "Spatial/counties.shp", delete_dsn=TRUE)
+```
+
+```{r}
+counties_shp <- st_read("Spatial/counties.shp")
+```
+
+First quick plot. The unique colors correspond to the unique names of each county:
+```{r}
+plot(counties_shp["NAME"])
+```
+
+
+
+### Attach some traits using `left_join`
+
+A great benefit of `sf` is its ability to work within the `tidyverse`
+
+We will now be taking some of the person and household characteristics and converting them to a format where they can be . We will be aggregating characteristics to the county level so we can map the traits of our CHTS respondents county-by-county
+
+1. 
+
+Variables where you want the mean:
+```{r}
+prhh_aggreg <- personHHData %>% 
+  mutate(Sum_VMT = DriveAlone_Dist + Driveothers_Dist +Passenger_Dist) %>%
+  select(hhid, pnum, CTFIP, County, bg_group,Sum_Trips, Sum_PMT, Sum_VMT, bornUSA, starts_with("pers")) %>%
+  group_by(CTFIP) %>%
+  summarise_at(vars(-hhid, -pnum, -County, -bg_group, -CTFIP), funs(mean,n()))
+
+#divide by the number of households in each. Actually can just do the mean for each county
+  
+```
+
+For the variables where it's a 1 or 0 (like bornUSA, or any of the variables that start with "pers"), this number is the percentage of people who answered "yes" (aka 1) to . I checked whether excluding the DK/RF answers (which are coded as 8 or 9 so could theoretically mess with the means) was necessary or changed the means and it made a minimal difference so we won't worry about it for now.
+
+3. Now, you can simply join the two datsets together using `left_join` like we have done in the past
+```{r}
+county_prhh_shp <- counties_shp %>% left_join(prhh_aggreg)
+```
+
+
+4. First map of traits
+```{r}
+mapview(county_prhh_shp, 
+        zcol = "bornUSA", legend=TRUE, 
+        label= county_prhh_shp$NAME, popup = popupTable())
+```
