@@ -3,7 +3,11 @@ title: 'Geog 111A Lab 1: R Basics'
 author: "Written by Adam W. Davis and Elizabeth C. McBride"
 date: "Fall 2018"
 output:
-  html_document: default
+  github_document
+  html_document: 
+  keep_md:yes
+  
+
 editor_options: 
   chunk_output_type: console
 ---
