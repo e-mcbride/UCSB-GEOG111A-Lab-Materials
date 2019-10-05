@@ -1,0 +1,110 @@
+---
+title: "Lab 2 - Fall 2019"
+author: "Elizabeth McBride"
+date: "10/4/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, eval = FALSE)
+```
+
+## Data Frames
+
+One particularly useful data structure in R is the `data.frame`, which stores data in an array of named columns (rows can also be named, but you probably don't want to). All the elements of a given column must be of the same type, but a `data.frame` can store multiple types of columns.
+
+For instance, this creates a data frame with one numeric column and one text column:
+```{r}
+df1 <- data.frame(r15 = range15, mode = listOfModes)
+df1
+```
+Note how we were able to name the columns using `=` within the `data.frame` function. 
+
+
+### Elements of a data frame can be accessed using column names
+
+```{r}
+df1$r15 # this will grab all items in the column called r15
+```
+The `$` allows you to select a column of the data frame by its name. See `?Extract` for more information on this and other functions for extracting specific values from your data.
+
+
+### New columns can be created and assigned to the table in much the same way
+
+This creates a new column that is equal to two times the value of `r15` in each row:
+```{r}
+df1$double_r15 <- df1$r15 * 2
+
+df1$newvar
+
+
+df1$newvar <- df1$newvar
+
+
+
+```
+
+
+### You can view data frames in a spreadsheet-like format using the View command:
+```{r}
+View(df1)
+```
+NOTE: Clicking on the `data.frame` in the `Environment` box (upper right corner of Rstudio) has the same effect.
+
+
+##### <span style="color:red">Q2. Create another new variable within `df1` named `r15_sq` that consists of the squared values of `r15`. Insert your code. () </span>
+
+## Loading External Packages
+
+### This command will install a number of packages that will be useful this week and for the rest of the quarter:
+```{r}
+install.packages('tidyverse')
+```
+If you do not have admin priveleges, you may be asked to create a personal library the first time you run this.
+
+
+###In order to use a package you have installed, you need to load the package library:
+```{r}
+library(tidyverse)
+```
+This gives you access to all of the functions in the packages listed in your console when you run the line.
+**NOTE:** You may see a warning about `readr` being built with an earlier version of R. Do not worry about this, everything will still work.
+
+
+## Data I/O
+
+### Data can be loaded from many formats, including standard comma-separated files:
+```{r}
+filelocation <- "C:/Users/mcbri/Documents/GradSchool/Teaching/GEOG111A_F18/Lab_Materials/UCSB-GEOG111A-Lab/rectangles.csv" # change this to the location of your file on your computer, with retangles.csv at the end. 
+rectangles <- read_csv(filelocation)
+```
+
+
+### To make sure the data loaded correctly, take a look at the first few rows of every variable:
+```{r}
+head(rectangles)
+```
+
+
+##### <span style="color:red">Q3. (A) How many variables does the `rectangles` dataset have? (B) How many observations?</span>
+
+
+## Summarizing and Visualizing Data
+
+R's basic functionality includes a number of very useful functions for summarizing data. Let's try a few, using named columns in our dataset.
+
+### Calculate the mean and median rectangle heights in the dataset:
+```{r}
+mean(rectangles$height, na.rm = TRUE)
+
+mean(c(7, 17,  8, 11, 19,  6,  4, 11, 20,  6), na.rm = TRUE)
+
+median(rectangles$height,na.rm = TRUE)
+
+
+```
+
+##### <span style="color:red">Q4. (A) Look up the "help" page for `NA`. In your own words, what would an `NA` value in the data mean? (B) Now Look up the "help" page for `mean` or `median`. In your own words, what does `na.rm` mean? (C) Why would you use the argument `na.rm = TRUE` in your mean or median calculation? () </span>
+
+
+##### <span style="color:red">Q5. Show me the code to calculate the mean and median of the width variable in the rectangles dataset</span>
