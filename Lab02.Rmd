@@ -177,7 +177,7 @@ View(df1)
 NOTE: Clicking on the `data.frame` in the `Environment` box (upper right corner of Rstudio) has the same effect.
 
 
-##### <span style="color:red">Q2. Create another new variable within* `df1` named `r15_sq` that consists of the squared values of `r15`. Insert your code. () </span>
+##### <span style="color:red">Q2. Create another new variable within `df1` named `r15_sq` that consists of the squared values of `r15`. Insert your code. () </span>
 
 ## Loading External Packages
 
