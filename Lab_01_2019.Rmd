@@ -1,7 +1,9 @@
 ---
 title: "Lab 1 -- Fall 2019"
 author: "Elizabeth McBride"
-output: html_document
+output:
+  html_document: default
+  pdf_document: default
 ---
 
 ```{r setup, include=FALSE}
@@ -12,26 +14,40 @@ knitr::opts_chunk$set(echo = TRUE, eval = FALSE)
 
 
 ## Introduction
-In this first lab, you will learn the basics of R. We will start with how to create a script, then we will discuss 
+In this first lab, you will learn the basics of R. We will start with how to create a script, then we will discuss some of the underlying concepts for coding.
 
 **Please be sure to read everything! Also be sure to run every line of code in this assignment on your own to follow along!**
 
 ***
-<span style="color:red">For submission: One script with the code asked for in the questions marked in red. Please make sure you have your **first name initial and full last name** in your document name. </span>
 
-Note: You will be submitting this script on Gauchospace to be graded. The only parts that will count towards your grade are the answers to the questions (marked in red). You may include the rest of in your submitted script, but it is not required for points. If you prefer to keep your question responses in a separate script without the in-between code for clarity, this is fine. If you do not separate the please **demarcate your responses to the questions clearly**, using a format like the example script included. The example script is available on rstudio.cloud as well as on Gauchospace.
+<span style="color:red">For submission: One script file (.R extension) with the code asked for in the questions marked in red. Please make sure you have your **full last name and first name initial** in your document name. </span>
 
 ***
 
 
 ## Getting Started
 
-Create a new script. (GET INSTRUCTIONS)
-Name the script when you save it with your last name and first initial. This script is where you will be writing your code. Your answers to the questions that count for points (marked in red) will also go into the script. As noted above, the script you submit to Gauchospace, the only code and other writing that will count for points will be the responses to the questions marked in red. So you can choose whether to keep those responses in a separate script or whether you want to keep it all together. 
+In this section, you will learn how to make a new script, how to run a line of code, and how to add comments to your code. 
+
+### Create a new script
+Create and save a new script. When you save it, don't forget to name the script with your last name and first initial.
+
+1. Click File > New File > R Script
+2. Save your script just like you would save any other document: 
+    a. Push File > Save
+    b. Name the file, and **make sure it has a `.R` file extension**
+    c. Click "Save"
+
+This new script is where you will be writing any code you want to keep. I highly recommend you keep all the lab example code in a script, even if that code is not for a grade. This allows you to pick up where you left off if you need to stop working in the middle of your assignment. 
+
+**Note:** You will be submitting this script on Gauchospace to be graded. For grading, the script you submit to Gauchospace only needs to have your responses to the questions marked in <span style="color:red">red.</span> You may include the example code in your submitted script, but it is not required for points. You can choose whether to keep the example code in a second, separate script (by following the "new script" instructions above and giving the script a different name), or whether you want to keep it all together.
+
+If you do keep the example code in your submission, it is especially important that you **demarcate your responses for points clearly**. The example script named `mcbride_e_lab1.R` shows you how you can format those answers. The example script is available in the Lab 1 project files alongside the lab instructions.
 
 
+### Run code
 
-Now you can start writing code! Type the following into your new script:
+Now you can start writing and running code! Type the following into your new script:
 ```{r}
 1 + 1
 ```
@@ -39,7 +55,7 @@ Now you can start writing code! Type the following into your new script:
 To run the code, click somewhere in that line of code so you see your cursor flashing in it. Then press `Ctrl+Enter` on a PC, or `Command+Enter` on a Mac. This will run the line your cursor is currently on. In your "Console" pane, you should see the line of code you just ran, then a line below it with the answer. 
 
 
-### More than one line of code at a time:
+#### More than one line of code at a time
 
 Type the following into your script, including the line break:
 ```{r}
@@ -50,26 +66,28 @@ Type the following into your script, including the line break:
 Now, highlight both lines and use the same run command as previously. This runs both lines of code one after the other.
 
 
-
 ### Comments
 
-Anything after the symbol `#` is a comment. Use comments to explain what you're doing.
+Anything you write after the symbol `#` is a comment. When you run code, R ignores comments. This makes them very useful for explaining what a line of code does. They are also useful if you want to skip a line of code, but you don't want to delete that line (like what we did with `5 + 5` below).
 
-**Tip**: Well-commented code will help you remember what each part of your code does. Comments are also very important for anyone else reading your code so they can follow along with what you are doing.
+**Tip:** Well-commented code will help you remember what each part of your code does. Comments are also very important for anyone else reading your code so they can follow along with your process.
 
 Comment example:
 ```{r}
 # Comments can go above or below code to divide it up for organization
 4 - 2
+# 5 + 5
 100/25 # They can also go next to a line of code
+
 #####
 # Five or more hashmarks in a row with no following text will create a section divide. 
 # You can minimize sections to hide them from view. Very handy for long scripts! 
+# You will see that the example script 'mcbride_e_lab1.R' uses section divides
 ```
 
 ## Basic Mathematical Operations
 
-### The following are the symbols for basic mathematic calculations:
+#### The following are the symbols for basic mathematic calculations:
 
 * Addition: `+`
 
@@ -103,7 +121,9 @@ Basic calculations
 ```
 
 
-##### <span style="color:red">Q1. In your script, write out at least four calculations besides the examples I gave. Run each and paste the answers into a comment to the right of each equation. (4) </span>
+##### <span style="color:red">Q1. In your script, write out at least four calculations besides the examples I gave. Run each and paste the answers into a comment to the right of each equation. See the example script named `mcbride_e_lab1.R` for an example of this format (4) </span>
+
+**NOTE:** Please demarcate your responses to the questions for points clearly, using formats similar tothe example script, named `mcbride_e_lab1.R`. You can find the example script in the Lab 1 project files alongside the lab instructions.
 
 
 ## Variable Assignment: Assigning Names to Objects
@@ -116,10 +136,10 @@ Run the following code in your script:
 a <- 1
 b <- 2
 ```
-Once you run these two lines, R will know that if you enter `a` you are referring to the number `1`, and if you type `y` you are referring to the number `2`. 
+Once you run these two lines, R will know that if you enter `a` you are referring to the number `1`, and if you type `b` you are referring to the number `2`. 
 
 
-**NOTE:** Now look at your `Environment` pane. Do you see your two newly-created variables `a` and `y`? Do you see how `a` has taken on the value `1` and `y` has taken on the value `2`?  
+**NOTE:** Now look at your `Environment` pane. Do you see your two newly-created variables `a` and `b`? Do you see how `a` has taken on the value `1` and `b` has taken on the value `2`? The `Environment` pane will be your best friend this quarter, get used to looking at it!
 
 
 Run the following two lines, one at a time, and check the `Console` pane for your results
@@ -130,15 +150,14 @@ b
 When you type `a` and run it, you should see the value `1` in the `Console`. We call R's response here **"returning a value"**.
 
 
-After running the variable assignment lines, any time you enter `a` or `b` it will  treat them **exactly the same** as if you typed the number `1` or `2`.
-
+After running the variable assignment lines, any time you enter `a` or `b` it will  treat them **exactly the same** as if you typed the number `1` or `2`, respectively. This means you can use `a` and `b` in formulas. Run the following two lines and check the `Console` pane for your results:
 ```{r}
 b^2 # R will treat this line exactly the same as the next line
 2^2
 ```
+When you run these lines, notice that the output (in the `Console`) for each line is identical.
 
-### Run the following code one line at a time:
-
+Run the following code one line at a time:
 ```{r}
 a + b
 a - b
@@ -148,12 +167,12 @@ a/b
 
 As you can see, variables that have been given names can be used in calculations. 
 
-##### <span style="color:red">Q2. In your script, answer the following questions. Include your code and the answers in a comment to the right of the equation. (A) What is b divided by a? (B) What is b-cubed? (2) </span>
+##### <span style="color:red">Q2. In your script, calculate the following. Include your code and the answers in a comment to the right of the equation. (A) Calculate b divided by a. (B) Calculate b-cubed. (2) </span>
 
 
 
 ## Data Types
-R stores data internally in a range of formats, including numbers, character strings, and boolean (`TRUE` / `FALSE`) values. You can create objects in a wide range of formats. This includes numbers (as you've seen), strings (aka text), and Boolean (`TRUE` / `FALSE`) values. As you will see, it can also store multiple values under the same name (called a vector). You can even store data frames, which is sort of like a collection of related vectors.
+R stores data internally in a range of formats, including numbers, character strings, and boolean (`TRUE` / `FALSE`) values. You can create objects in a wide range of formats. This includes numbers (as you've seen), strings (aka text), and Boolean (`TRUE` / `FALSE`) values. As you will see, it can also store multiple values under the same name (called a vector). You can even store collections of multiple vectors under one name (more on this in Lab 2).The usefulness of this flexibility will become clear as the code you write becomes more complicated.
 
 You have already seen numeric objects, like your variables `a` and `b`, so let's learn a bit about the other data types.
 
@@ -163,11 +182,17 @@ In the programming world, data that is made up of **plain text** is called "char
 
 To tell R you want to store something as a string, **you must surround the string with single or double quotation marks**.
 
-#### Run the following:
+Run the following (ALSO: I EXPECT YOU TO RUN EVERY LINE OF EXAMPLE CODE, so I will not be directing you to "run the following" again after this)
 ```{r}
 mystring <- "Testing 1-2-3!"
 ```
-The characters between a set of quotes are called a "string". DON'T FORGET THE QUOTATION MARKS ARE VERY IMPORTANT IF YOU ARE USING STRINGS. 
+The sequence of characters between a set of quotes are called a "string". DON'T FORGET THAT QUOTATION MARKS ARE REQUIRED IF YOU ARE WRITING STRINGS. 
+
+##### <span style="color:red">Q3. Finish the line of code below to make a new character object called `myname` that contains your first name. Include the entire completed line for credit. Make sure to run this line of code, as you will need the `myname` object later in the lab. (1) </span>
+```{r}
+myname <- # INSERT YOUR FIRST NAME HERE (include your answer to the left of the hash mark so it runs)
+```
+
 
 
 ### Boolean -- aka true/false
@@ -182,19 +207,23 @@ You can also use them to isolate the values you want from a larger set of values
 10 >= 9  # 
 10 < 3   # 
 10 != 10 # 
-!TRUE    # 
 ```
 
-##### <span style="color:red">Q1. Answer the following in comments in your script. Go to http://www.statmethods.net/management/operators.html and look at the table of Logical Operators. (A) Explain what `10 >= 9` is testing in the form of a question (format it like I did for `10 == 10` in the code above, with the logical test to the left of the comment). (B) Do the same for `10 < 3`. (C) Do the same for `10 != 10`. (2) </span>
+##### <span style="color:red">Q4. Answer the following in comments in your script. Go to http://www.statmethods.net/management/operators.html and look at the table of Logical Operators. (A) Explain what `10 >= 9` is testing in the form of a question (format it like I did for `10 == 10` in the code above, with the logical test to the left of the comment). (B) Do the same for `10 < 3`. (C) Do the same for `10 != 10`. (2) </span>
 
-
+The exclamation point means "NOT". Putting `!` before any logical test changes it to ask for the "flipped" version of whatever the question is. 
+```{r}
+!TRUE
+!FALSE
+```
+When you run the lines above, notice the outputs are the "opposite" of what you entered. That is because you are asking R to tell you what "NOT TRUE" is, and the answer is FALSE. Or for the second line, you are asking what "NOT FALSE" is.
 
 There are other types of tests for TRUE/FALSE values as well. More on that can be found in the section below titled "Functions and Boolean Values."
 
 ### Vectors -- multiple values stored in one place
 You can store multiple values of the same basic variable type (like numeric, character, or Boolean) under one name. An object of this type is called a vector. See http://www.r-tutor.com/r-introduction/vector for more info.
 
-The `c()` function "combines its arguments to form a vector" (from `c()` function help page). Run the following:
+The `c()` function "combines its arguments to form a vector" (from `c()` function help page).
 ```{r}
 range15 <- c(11,12,13,14,15)
 range15 # run this line to look at your new object in the console
@@ -238,47 +267,53 @@ range15[range15 < 14]
 ```
 This code asks R to return all `range15` values below 14.
 
-##### <span style="color:red">Q3. Show me the **code** to return the values of `range15` that are greater than 12. (2) </span>
+##### <span style="color:red">Q5. Show me the **code** to return the values of `range15` that are greater than 12. (2) </span>
 
 
 
 ## Functions
 Functions are a very important part of any programming language, including R. Functions are like pre-written code shortcuts that allow you to perform more complex actions in fewer steps. There are many useful pre-written functions in R that perform a number of actions quickly for you. 
 
-As an example, the built-in function `rep()` will create a **vector** of values. The first input (`x`) is the value you want to be repeated, and the second input (`times`) is the number of times you want it to repeat.
+As an example, the built-in function `rep()` will create a **vector** of values. The first input (`x`) is the value you want to be repeated, and the second input (`times`) is the number of times you want it to repeat. 
+
+```{r}
+rep(x = "banana", times = 4)
+```
+
+When you run this, you should see the word `banana` repeated four times in the console.
+
+Functions are always formatted with the name of the function first, followed by **parentheses**. Inside the parentheses, you include function inputs, which are called **arguments**. Above, the function named `rep` has two arguments. The arguments are `x = "banana"` and `times = 4`. The way you know what arguments a function requires are by looking it up in the **`Help` system**. More on this will be discussed below.
+
+Above, you created a vector of strings. This next line will create a vector of numbers:
 ```{r}
 rep(x = 4,times = 10)
 ```
 When you run this, you should see the number `4` repeated ten times in the console.
 
-```{r}
-rep(x = "banana", times = 4)
-```
-When you run this, you should see the word `banana` repeated four times in the console.
-
 
 ### Functions and Boolean Values
 There are many built-in functions to do tests that return TRUE/FALSE values.
-Run the following:
 ```{r}
 mynumeric <- 5
-is.numeric(mynumeric)
-!is.numeric(mynumeric)
+is.numeric(x = mynumeric)
+!is.numeric(x = mynumeric)
 ```
-The `is.numeric()` function tests whether or not the value stored in `a` is numeric. If it is, it returns `TRUE`, if it is *not*, it will return `FALSE`. By putting `!` in front of it, we "flipped" the question. `!is.numeric()` is asking if `a` is NOT numeric. Putting `!` before any logical test changes it to asking for the "flipped" version of whatever the question is. 
+The `is.numeric()` function tests whether or not the value stored in `mynumeric` is numeric. If it is, it returns `TRUE`, if it is *not*, it will return `FALSE`. By putting `!` in front of it, we "flipped" the question. `!is.numeric()` is asking if `a` is NOT numeric. Putting `!` before any logical test changes it to asking for the "flipped" version of whatever the question is. 
 
-#### Run the following:
+
 ```{r}
-mystring #to remind you of what is stored under object name mystring
-is.numeric(mystring)
+mystring #to remind you of what is stored under object name "mystring"
+is.numeric(x = mystring) 
 ```
 The `is.numeric()` function is testing whether the value stored under `mystring` is numeric. See how it says `FALSE` when you run that? Because `mystring` is not numeric data.
 
-Now run the following:
+
 ```{r}
-is.character(mystring)
+is.character(x = mystring)
 ```
-The functions `is.character()` tests whether or not the value stored is character type. When you run this line, you should get `TRUE` in your console. 
+The functions `is.character()` tests whether or not the value stored is character/string type. When you run this line, you should get `TRUE` in your console. 
+
+##### <span style="color:red">Q6. Show me the **code** to test if the object `myname` is a string. (1) </span>
 
 
 ### Functions and Vectors
@@ -310,10 +345,21 @@ or just:
 
 
 
-##### <span style="color:red">Q4. Look up `Logic` in the help system (it is case-sensitive), then click "Logical Operators". What does an exclamation point indicate? Answer in a comment. (1) </span>
+##### <span style="color:red">Q7. Look up `sort` in the help system. (A) In a commented sentence in your own words, describe what the `sort()` function does. (B) On a new line (not in the commented line), show me the code to sort the values in `range06` in descending order. (3) </span>
 
 
+If you are curious about what other functions are available, there are a number of resources that can help you. Google is your best friend. There are all kinds of online guides that can tell you more! 
 
 
+## Exporting your script from rstudio.cloud to your computer (to submit it to Gauchospace)
+
+1. Make sure you have saved your most recent version of the file
+2. Go to the "Files" tab and click the check box to the left of your script you are submitting 
+3. Click "More"
+4. Click "Export..."
+5. Click "Download"
+6. When prompted (at least on a PC I am not certain how it will work on a Mac), click "Save File" button, not "Open with", and click OK
+7. Choose where on your computer you would like to save the file
+8. Upload the file to Gauchospace at the submission link.
 
 
