@@ -1,0 +1,206 @@
+---
+title: 'Geog 111A Lab 4: Concept Review and Joining Files'
+author: "Adam Davis and Elizabeth McBride"
+date: "Fall 2019"
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, eval = FALSE, results = FALSE, warning = FALSE, message = FALSE)
+```
+
+## Introduction
+
+***
+This lab is a conceptual review of what we have learned so far. It will introduce one new topic: joining datasets together.
+
+Please read all materials in labs and run all code! TIP: Don't just run the example code in the labs. **Inspect the results you get**, and see how they relate to the text around them.
+
+Clues to help guide you through the questions are included in italics.
+
+***
+<span style="color:red">For submission: One script with the code asked for in the questions marked in red. Please make sure you have your **first name initial and full last name** in your document name. </span>
+
+***
+
+### Setting Up
+
+
+Load package
+```{r}
+library(tidyverse)
+```
+
+### Reading and Writing in R (with conceptual review)
+You can create objects from data you already have on your computer. That is called "reading" data into R. When the data you read in is a table with rows and columns, in R we call objects of this type "data frames". I will also often use the term "dataset".
+
+##### Read person data frame and household data frame into Environment
+```{r}
+peopleFull <- read_rds('Data/PersonData_111A.Rds')
+
+hhFull <- read_rds('Data/HHData_111A.Rds')
+```
+When you run the `read` line `peopleFull <- read_rds(...)`, you are taking your survey data file that you already have saved on your computer and **making a copy of that dataset in R as a named object** you call `peopleFull`. Same idea goes for `hhFull`.
+
+You can think of `peopleFull` and `hhFull` as **copies** of the datasets because objects in R are not anchored to files saved on your computer. So changes to R objects WON'T OVERWRITE ANY FILES ON YOUR COMPUTER. 
+
+Of course, it is possible to save things you create in R onto your computer, but it requires a `write` command. Running a `write` command is how you **save something you did in R onto your computer.** This is nice because you don't have to worry about accidentally permanently messing up your original data files while you do things in R. 
+
+
+### Assigning Names to Objects (Concept Discussion)
+In terms of the objects in your environment, when you write code to run a command, there are generally three possible outcomes:
+
+* If you write code **without assigning a name** at the beginning (i.e. without `obj_name <-`), 
+     + there will be **no permanently stored changes to any object(s) you used in that code**.
+     + All objects in your Environment stay exactly the same.
+* If you **assign an unused name to an object**, 
+     + there will *still* be **no permanently stored changes to any object(s) you used in that code**. The objects you used in that code will not be affected. 
+     + The **previously-existing objects and the new one will all be available separately** under their unique names. 
+* If you **assign your object a name that already exists** in your Environment, 
+     + it will **overwrite the old object with the new one**. 
+     + The changes you made will permanently change the value under that name unless you rerun the earlier lines of code where that object was first created.
+
+Example of this process:
+
+* We have our original dataset called `peopleFull`. We want to remove unnecessary columns to make our lives a little easier when we have to scroll through everything. So, we write some code that would take `peopleFull` and remove columns with `select()`.
+* HOWEVER, we want to maintain `peopleFull` as a copy of the original data with all 50 columns (in case we change our minds later and want to use different columns in our analysis).
+* So when we use `select()` to remove columns, we assign the modified dataset the new name `people` (This happens in the command that starts with `people<-` )
+
+```{r}
+people <- peopleFull %>% 
+  select(hhid:persOthr,DriverLic:Employed,Student,workday,Walk_trips:Allothers_trips,Sum_Trips,Sum_PMT)
+```
+Now, the old copy is still in our Environment as `peopleFull`, *and* we have a new modified version in our Environment named `people` (see top right panel)
+
+Long story short: If you want something you do in your code (like creating a new column in your dataset) to be **saved as a change** so you can access it again later (like your smaller dataset), you will **ALWAYS need to store the change by assigning a name at the beginning of the code** (i.e. `obj_name <- ... `). 
+
+
+Now, we will create a new dataset from `people` named `ppl_means`. This will be a smaller dataset, and we will build two new columns using `mutate()`: one (`mean_TrpLength`) will calculate the average length of each person's trips. The other (`half_mean`) will divide those previous numbers in half.
+```{r}
+
+ppl_means <- people %>% 
+  select(hhid, pnum, Sum_PMT, Sum_Trips) %>%
+  mutate(mean_TrpLength = Sum_PMT / (Sum_Trips + 0.000001), #adding a very tiny value to Sum_Trips to avoid dividing by zero (not usually recommended!!)
+         half_mean = mean_TrpLength / 2)
+```
+Doing what I did above (adding a tiny value to `Sum_Trips` to avoid dividing by zero) is usually not recommended. But this is just for pedagogical purposes so we can use the variables as they are.
+
+##### <span style="color:red">Q1. Show me the code to make a new object named `ppl_cartrips`, where you use `mutate()` to calculate a new column called `car_trips` with respondents' **total trips by car**, including driving alone, driving others, and as a passenger. *(Start with the `people` dataset, `select` the columns you need, then `mutate` to create the new column. You will be using addition (`+`). Check the Data Dictionary for column names)* (6)</span>
+
+
+
+### Review of `filter()`, Logical Statements, TRUE/FALSE, AND/OR
+Discussion here
+
+The `filter()` function takes conditional/logical statements and returns only the observations that would return TRUE.
+
+##### <span style="color:red">Q2. (A) How would you use `filter()` to get the people who traveled more than 50 miles driving alone? (B) How would you get the people who are younger than 15 and older than 65? (C) How would you get the people who made at least 1 walking trip? (D) How would you get the people who made at least one walking trip or they made at least one biking trip? (E) How would you get the people who made no trips driving alone and they are under 15 years old? *(You will be using logical operators inside `filter()`. Be very careful with AND/OR!)* (5) </span>
+
+### `summarise()` and `group_by()`
+Discussion Here
+
+**Comparing (non-statistically) trip counts between work/nonwork days for employed people:**
+```{r}
+people %>% filter(Employed == 1) %>% #grab only survey respondents who are employed
+  group_by(workday) %>%
+  summarise(nPeople=n(), meanTrips = mean(Sum_Trips))
+```
+Above, we end up with a table where we can compare workdays to non-workdays for employed people. We use `filter()` to select only the people who are employed because that is our population of interest. Then, we use `group_by()` to group by the variable workday, which has a value of 0 if it is not a workday, and a value of 1 if it is a workday. Finally, we use `summarise()` to get two summarized columns: `nPeople` which has the number of people in each group, and `meanTrips`, which has the mean number of trips for each group.
+
+##### <span style="color:red"> Q3. (A) Add an argument to `summarise()` above to additionally calculate the mean PMT for workdays versus non-workdays. Show your code. (B) How do workers' travel behaviors differ on workdays vs. non-workdays? Interpret your results in a couple commented sentences. *(You can talk about both the mean trips and the mean PMT values.)* (3) <span>
+
+#### Variations (`_all()`, `_at()`, `_if()`)
+
+Start by looking up the help page for `summarise_at()`
+```{r}
+?summarise_at()
+```
+You can see there are three variants of `summarise()`: `_all()`, `_at()`, `_if()`. If you want to do the same summarization to multiple columns (let's say you want separate means for each column), then this provides some shortcuts so you don't have to type out `summarise(meanA = mean(a), meanB = mean(b), meanC = mean(c))`. Today, we will be learning about the first two (`_all()` and `_at()`). You will not need to use `_if()`, but you can find more information on its use on the "Help" page.
+
+Before we continue, we will create an example dataset to test these out on:
+```{r}
+ppl_ex <- peopleFull %>% select(hhid, pnum, Student, Passenger_trips, DriveAlone_trips) 
+```
+
+
+##### First variant: `_all()`
+The variant `_all()` will calculate the mean for **all** the variables in the dataset. Using it looks like this:
+```{r}
+ppl_ex %>% summarise_all(.funs = mean)
+
+# Or more simply:
+ppl_ex %>% summarise_all(mean)
+```
+Notice we have not only taken the mean of our number of trips, but also of `hhid` and `pnum`, which are ID variables so it doesn't make much sense to calculate their means. For the variable `Student`, the values correspond to answers people gave on the survey (1 is yes, 0 is no, 8 is "don't know", and 9 is "refuse to answer"), so getting the mean of `Student` also does not make sense. Use `summarise_all()` if you **only** have variables in your dataset that are either the ones you want to calculate summaries for OR are variables being used for grouping. Like below:
+
+```{r}
+ppl_ex %>% select(-hhid, -pnum) %>% # removes hhid and pnum from dataset
+  group_by(Student) %>% #groups by the variable Student
+  summarise_all(mean)
+```
+Now, we have a table that has the four `Student` responses as separate groups, and the mean number of trips as a passenger and trips driving alone for each group. Inspect the table and compare the mean passenger trips and driving alone trips between non-students (`0`) and students (`1`). See how big of a difference there is? Can you think of why that might be (not for points, just a thought experiment)? Tip: those who have a value of `1` for `Student` can be in K-12 or higher education. 
+
+
+##### Next variant: `_at()`
+When you want to define the variables you would like to summarize by name, you can use `summarise_at()`. Then, you can use the same methods as you would in `select()` to define what variables you would like to summarize. You just do so inside of the parentheses of `vars()` like so:
+```{r}
+ppl_ex %>% 
+  summarise_at(vars(Passenger_trips, DriveAlone_trips), .funs = mean)
+
+#or, more simply
+ppl_ex %>% 
+  summarise_at(vars(Passenger_trips, DriveAlone_trips), mean)
+
+```
+
+You can use `-` to drop variables, as you would in `select()`:
+```{r}
+ppl_ex %>% 
+  summarise_at(vars(-hhid, -pnum, -Student), mean)
+```
+
+You can also use `starts_with()` or `ends_with()` like you would in `select()` to choose only columns that have something in their name in common:
+```{r}
+ppl_ex %>% 
+  summarise_at(vars(ends_with("trips")), mean)
+```
+For now, we will move on to joining data, but the last question of this lab will be much shorter to type out if you use `summarise_at()` instead of `summarise()`.
+
+### Joining data
+It is often necessary to bring together information contained in multiple datasets. 
+
+In `dplyr`, joins are easy to code and ~2-3 orders of magnitude faster than the equivalent commands in base R for moderately large datasets (like 10,000+ keys to join).
+
+To perform a table join, your datasets must have one (or more) variable in common. In this case, the `people` dataset has the `hhid` variable that can be used to join them with household data:
+```{r}
+names(hhFull)
+names(people)
+```
+Above code shows us the names of all the columns in the two datasets.
+
+The `left_join` function will automatically identify common variable names. There are other joins in `dplyr`, but `left_join` is the simplest.
+```{r}
+peopleXHH <- left_join(people,hhFull) # it says: Joining, by = "hhid"
+```
+
+
+The county column stores the home county of this household.
+```{r}
+peopleXHH %>% 
+  count(County) %>% 
+  View() #This line opens a tab where 
+```
+
+This next question will test your understanding of a number of topics.
+
+##### <span style="color:red">Q4. (A) Show me the code to do the following set of actions: group `peopleXHH` by day of the week using `group_by()`. Use `summarise()` or `summarise_at()` to create a summary table showing the average person miles travelled (PMT) by the following modes on each day: Drive Alone, Passenger, Walking, and All Others (basically Transit). (B) How does distance travelled by mode vary over the week? Briefly interpret the results in comments. *(Remember to check the Data Dictionary if you don't know variable names. Also check Lab 4 materials if you need a reminder on how to do something like this.)* (5) </span>
+
+
+
+
+
+
+
